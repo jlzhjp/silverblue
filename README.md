@@ -23,6 +23,7 @@ Google Chrome is currently x86_64-only, so the build intentionally publishes onl
 │   └── flathub.txt
 ├── fish/
 │   └── vendor_functions.d/
+│       ├── setup_fish_shell.fish
 │       ├── setup_home_manager.fish
 │       ├── setup_nix.fish
 │       └── setup_package_groups.fish
@@ -48,6 +49,8 @@ Google Chrome is currently x86_64-only, so the build intentionally publishes onl
 Add future DNF packages to `packages/base.txt`, one package per line. `packages/bootstrap.txt` is only for packages required before the main build shell is available; currently it installs Fish so later `RUN` steps can use `/usr/bin/fish`. Add third-party RPM repositories under `repos/`; `Containerfile` copies all `*.repo` files into `/etc/yum.repos.d/`.
 
 Fish, Git, and `btrfs-progs` are installed from Fedora's native repositories. Docker Engine is installed from Docker's official Fedora RPM repository using `docker-ce`, `docker-ce-cli`, `containerd.io`, `docker-buildx-plugin`, and `docker-compose-plugin`. Wireshark is installed from Fedora's native repositories. Visual Studio Code is installed from Microsoft's official RPM repository using the `code` package. Ghostty is installed from the `scottames/ghostty` Fedora Copr. Nix uses Fedora's native `nix` and `nix-daemon` packages.
+
+Run `setup_fish_shell` as the target user to set that user's login shell to `/usr/bin/fish`. The function uses `chsh`, so it may prompt for the user's password. The image does not change global `useradd` defaults because that can affect package-created service accounts.
 
 Run `sudo fish -c setup_package_groups` after installing the system to add the current sudo user to package-specific groups. The function currently adds the target user to `docker` and `wireshark` when those groups exist. Pass a username explicitly if needed: `sudo fish -c 'setup_package_groups akari'`.
 
