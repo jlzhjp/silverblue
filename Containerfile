@@ -11,7 +11,9 @@ RUN set -eux; \
     mkdir -p /opt; \
     xargs -r dnf -y install < /tmp/packages/bootstrap.txt
 
-SHELL ["/usr/bin/fish", "-c"]
+COPY fish/vendor_functions.d/*.fish /usr/share/fish/vendor_functions.d/
+
+SHELL ["/usr/bin/env", "HOME=/tmp", "XDG_CONFIG_HOME=/tmp/fish-config", "XDG_DATA_HOME=/tmp/fish-data", "/usr/bin/fish", "--no-config", "-c"]
 
 RUN dnf -y install \
         https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-44.noarch.rpm \
@@ -31,9 +33,20 @@ RUN dnf -y install \
         print ""; \
     }' /tmp/flatpaks/flathub.txt > /usr/share/flatpak/preinstall.d/10-flathub.preinstall; \
     and dnf clean all; \
-    and rm -rf /tmp/packages /tmp/flatpaks /var/cache/dnf /var/cache/libdnf5 /var/lib/dnf /var/log/dnf5.log
+    and rm -rf \
+        /tmp/fish-config \
+        /tmp/fish-data \
+        /tmp/packages \
+        /tmp/flatpaks \
+        /var/cache/dnf \
+        /var/cache/ibus \
+        /var/cache/ldconfig \
+        /var/cache/libdnf5 \
+        /var/lib/dnf \
+        /var/log/dnf5.log
 
 COPY systemd/flatpak-preinstall.service /usr/lib/systemd/system/flatpak-preinstall.service
+COPY tmpfiles/*.conf /usr/lib/tmpfiles.d/
 
 RUN mkdir -p /usr/lib/systemd/system/multi-user.target.wants; \
     and ln -s ../flatpak-preinstall.service /usr/lib/systemd/system/multi-user.target.wants/flatpak-preinstall.service; \

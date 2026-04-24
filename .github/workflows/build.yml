@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Free runner disk space
         run: sudo rm -rf /opt/hostedtoolcache
@@ -34,11 +34,28 @@ jobs:
           image_name="${IMAGE_NAME,,}"
           short_sha="${GITHUB_SHA::12}"
           echo "name=${image_name}" >> "${GITHUB_OUTPUT}"
+          echo "cache=${image_name}-build-cache" >> "${GITHUB_OUTPUT}"
           echo "short_sha=${short_sha}" >> "${GITHUB_OUTPUT}"
+
+      - name: Configure build cache
+        id: cache
+        run: |
+          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
+            exit 0
+          fi
+
+          {
+            echo "extra_args<<EOF"
+            echo "--cache-from"
+            echo "${{ steps.image.outputs.cache }}"
+            echo "--cache-to"
+            echo "${{ steps.image.outputs.cache }}"
+            echo "EOF"
+          } >> "${GITHUB_OUTPUT}"
 
       - name: Log in to GHCR
         if: github.event_name != 'pull_request'
-        uses: redhat-actions/podman-login@v1
+        uses: redhat-actions/podman-login@4934294ad0449894bcd1e9f191899d7292469603 # v1.7
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -46,7 +63,7 @@ jobs:
 
       - name: Build image
         id: build-image
-        uses: redhat-actions/buildah-build@v2
+        uses: redhat-actions/buildah-build@7a95fa7ee0f02d552a32753e7414641a04307056 # v2.13
         with:
           image: ${{ steps.image.outputs.name }}
           tags: |
@@ -54,14 +71,15 @@ jobs:
             latest
             sha-${{ steps.image.outputs.short_sha }}
           archs: amd64
+          layers: true
+          extra-args: ${{ steps.cache.outputs.extra_args }}
           containerfiles: |
             ./Containerfile
 
       - name: Push image
         if: github.event_name != 'pull_request'
-        uses: redhat-actions/push-to-registry@v2
+        uses: redhat-actions/push-to-registry@5ed88d269cf581ea9ef6dd6806d01562096bee9c # v2.8
         with:
           image: ${{ steps.build-image.outputs.image }}
           tags: ${{ steps.build-image.outputs.tags }}
           registry: ghcr.io
-

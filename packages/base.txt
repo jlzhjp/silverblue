@@ -1,6 +1,13 @@
 clash-meta
+btrfs-progs
 code
+containerd.io
+docker-buildx-plugin
+docker-ce
+docker-ce-cli
+docker-compose-plugin
 ffmpeg
+git
 ghostty
 google-chrome-stable
 ibus-mozc
@@ -12,3 +19,4 @@ nix
 nix-daemon
 sing-box
 tailscale
+wireshark
