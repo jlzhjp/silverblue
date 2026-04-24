@@ -1,4 +1,5 @@
 .DS_Store
+.codex
 *.swp
 *.swo
 
@@ -6,4 +7,3 @@
 *.tar
 *.oci
 *.log
-
