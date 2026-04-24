@@ -1,0 +1,5 @@
+io.missioncenter.MissionCenter
+com.mattjakeman.ExtensionManager
+page.tesk.Refine
+com.obsproject.Studio
+com.github.tchx84.Flatseal

@@ -1,0 +1,12 @@
+[Unit]
+Description=Preinstall configured Flatpak applications
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/usr/share/flatpak/preinstall.d/10-flathub.preinstall
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/flatpak preinstall -y
+
+[Install]
+WantedBy=multi-user.target

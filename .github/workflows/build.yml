@@ -1,0 +1,67 @@
+name: Build bootc image
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 5 * * 1"
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository }}
+  IMAGE_TAG_VERSION: "44"
+
+jobs:
+  build:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Free runner disk space
+        run: sudo rm -rf /opt/hostedtoolcache
+
+      - name: Normalize image name
+        id: image
+        run: |
+          image_name="${IMAGE_NAME,,}"
+          short_sha="${GITHUB_SHA::12}"
+          echo "name=${image_name}" >> "${GITHUB_OUTPUT}"
+          echo "short_sha=${short_sha}" >> "${GITHUB_OUTPUT}"
+
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: redhat-actions/podman-login@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build image
+        id: build-image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: ${{ steps.image.outputs.name }}
+          tags: |
+            ${{ env.IMAGE_TAG_VERSION }}
+            latest
+            sha-${{ steps.image.outputs.short_sha }}
+          archs: amd64
+          containerfiles: |
+            ./Containerfile
+
+      - name: Push image
+        if: github.event_name != 'pull_request'
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build-image.outputs.image }}
+          tags: ${{ steps.build-image.outputs.tags }}
+          registry: ghcr.io
+
