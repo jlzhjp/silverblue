@@ -4,6 +4,11 @@ function setup_fish_shell --description "Set the current user's login shell to f
         return 1
     end
 
+    if not command -q sudo
+        echo "Missing required command: sudo" >&2
+        return 1
+    end
+
     if not test -x /usr/bin/fish
         echo "Fish is not installed at /usr/bin/fish" >&2
         return 1
@@ -20,5 +25,5 @@ function setup_fish_shell --description "Set the current user's login shell to f
         return 0
     end
 
-    chsh -s /usr/bin/fish
+    sudo chsh -s /usr/bin/fish (id -un)
 end

@@ -1,4 +1,13 @@
 function setup_package_groups --description "Add a user to groups needed by image-provided packages"
+    set -l sudo
+    if test (id -u) -ne 0
+        if not command -q sudo
+            echo "Missing required command: sudo" >&2
+            return 1
+        end
+        set sudo sudo
+    end
+
     set -l target_user
 
     if test (count $argv) -gt 0
@@ -14,15 +23,11 @@ function setup_package_groups --description "Add a user to groups needed by imag
         return 2
     end
 
-    if test (id -u) -ne 0
-        echo "setup_package_groups must be run as root, for example: sudo fish -c 'setup_package_groups $USER'" >&2
-        return 1
-    end
-
     set -l groups docker wireshark
     for group_name in $groups
         if getent group $group_name >/dev/null
-            usermod -aG $group_name $target_user
+            $sudo usermod -aG $group_name $target_user
+            or return 1
         else
             echo "Skipping missing group: $group_name" >&2
         end

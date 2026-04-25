@@ -24,6 +24,7 @@ Google Chrome is currently x86_64-only, so the build intentionally publishes onl
 ├── fish/
 │   └── vendor_functions.d/
 │       ├── setup_fish_shell.fish
+│       ├── setup_flatpaks.fish
 │       ├── setup_home_manager.fish
 │       ├── setup_nix.fish
 │       └── setup_package_groups.fish
@@ -34,8 +35,6 @@ Google Chrome is currently x86_64-only, so the build intentionally publishes onl
 │   ├── sing-box.repo
 │   ├── tailscale.repo
 │   └── vscode.repo
-├── systemd/
-│   └── flatpak-preinstall.service
 ├── tmpfiles/
 │   ├── clash-meta.conf
 │   ├── docker.conf
@@ -50,11 +49,13 @@ Add future DNF packages to `packages/base.txt`, one package per line. `packages/
 
 Fish, Git, and `btrfs-progs` are installed from Fedora's native repositories. Docker Engine is installed from Docker's official Fedora RPM repository using `docker-ce`, `docker-ce-cli`, `containerd.io`, `docker-buildx-plugin`, and `docker-compose-plugin`. Wireshark is installed from Fedora's native repositories. Visual Studio Code is installed from Microsoft's official RPM repository using the `code` package. Ghostty is installed from the `scottames/ghostty` Fedora Copr. Nix uses Fedora's native `nix` and `nix-daemon` packages.
 
-Run `setup_fish_shell` as the target user to set that user's login shell to `/usr/bin/fish`. The function uses `chsh`, so it may prompt for the user's password. The image does not change global `useradd` defaults because that can affect package-created service accounts.
+Run `setup_fish_shell` as the target user to set that user's login shell to `/usr/bin/fish`. The function uses `sudo chsh`, so it may prompt for authentication. The image does not change global `useradd` defaults because that can affect package-created service accounts.
 
-Run `sudo fish -c setup_package_groups` after installing the system to add the current sudo user to package-specific groups. The function currently adds the target user to `docker` and `wireshark` when those groups exist. Pass a username explicitly if needed: `sudo fish -c 'setup_package_groups akari'`.
+Run `setup_package_groups` after installing the system to add the current user to package-specific groups. The function currently adds the target user to `docker` and `wireshark` when those groups exist. Pass a username explicitly if needed: `setup_package_groups akari`.
 
-Run `sudo fish -c setup_nix` once before using Nix. Fedora Silverblue's root is immutable, so the function creates a top-level Btrfs subvolume named `nix`, appends an idempotent `/etc/fstab` entry for `/nix`, and mounts it. It refuses to mount over a non-empty `/nix` directory.
+Run `setup_nix` once before using Nix. Fedora Silverblue's root is immutable, so the function creates a top-level Btrfs subvolume named `nix`, appends an idempotent `/etc/fstab` entry for `/nix`, and mounts it. It refuses to mount over files or non-directory content in `/nix`, but allows an empty directory structure.
+
+Run `setup_flatpaks` as the target user to add the Flathub user remote and preinstall the applications listed in `flatpaks/flathub.txt` into that user's Flatpak installation.
 
 Run `setup_home_manager <git-url>` as the target user to clone a flake-based Home Manager config into `~/.config/home-manager` and apply it with `nix run home-manager/master -- switch --flake ~/.config/home-manager`. Useful options include `--ref <branch>`, `--directory <path>`, and `--no-switch`.
 
@@ -64,7 +65,7 @@ setup_home_manager git@github.com:example/home-manager.git
 setup_home_manager --ref main https://github.com/example/home-manager.git
 ```
 
-Flatpak is provided by the Fedora Silverblue base image. Add Flatpak applications to `flatpaks/flathub.txt`, one Flathub application ID per line. The build installs the Flathub remote definition into `/usr/share/flatpak/remotes.d/` and generates `/usr/share/flatpak/preinstall.d/10-flathub.preinstall`. On boot, `flatpak-preinstall.service` runs `flatpak preinstall -y` after networking so configured Flatpak apps are installed system-wide into the host's Flatpak installation.
+Flatpak is provided by the Fedora Silverblue base image. Add Flatpak applications to `flatpaks/flathub.txt`, one Flathub application ID per line. The build installs the Flathub remote definition into `/usr/share/flatpak/remotes.d/` and generates `/usr/share/flatpak/preinstall.d/10-flathub.preinstall`. `setup_flatpaks` runs `flatpak preinstall --user --noninteractive -y`, avoiding boot-time system-wide Flatpak installation and session D-Bus autolaunch errors.
 
 RPM Fusion free and nonfree release packages are installed during the build before the package list is resolved. The package install uses `--allowerasing` so codec packages such as RPM Fusion `ffmpeg` can replace Fedora split/free variants when needed.
 

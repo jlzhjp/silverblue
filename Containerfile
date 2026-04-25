@@ -45,9 +45,6 @@ RUN dnf -y install \
         /var/lib/dnf \
         /var/log/dnf5.log
 
-COPY systemd/flatpak-preinstall.service /usr/lib/systemd/system/flatpak-preinstall.service
 COPY tmpfiles/*.conf /usr/lib/tmpfiles.d/
 
-RUN mkdir -p /usr/lib/systemd/system/multi-user.target.wants; \
-    and ln -s ../flatpak-preinstall.service /usr/lib/systemd/system/multi-user.target.wants/flatpak-preinstall.service; \
-    and bootc container lint
+RUN bootc container lint

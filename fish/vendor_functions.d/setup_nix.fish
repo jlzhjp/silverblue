@@ -1,7 +1,11 @@
 function setup_nix --description "Create and mount a Btrfs /nix subvolume on immutable Fedora systems"
+    set -l sudo
     if test (id -u) -ne 0
-        echo "setup_nix must be run as root, for example: sudo fish -c setup_nix" >&2
-        return 1
+        if not command -q sudo
+            echo "Missing required command: sudo" >&2
+            return 1
+        end
+        set sudo sudo
     end
 
     for command_name in btrfs findmnt mount umount awk
@@ -39,9 +43,9 @@ function setup_nix --description "Create and mount a Btrfs /nix subvolume on imm
     end
 
     if test -d /nix
-        set -l nix_contents (find /nix -mindepth 1 -maxdepth 1 2>/dev/null)
-        if test -n "$nix_contents"
-            echo "/nix exists and is not empty. Refusing to mount over existing content." >&2
+        set -l nix_non_directory_contents ($sudo find /nix -mindepth 1 ! -type d -print -quit 2>/dev/null)
+        if test -n "$nix_non_directory_contents"
+            echo "/nix contains non-directory content. Refusing to mount over existing content." >&2
             return 1
         end
     end
@@ -52,7 +56,7 @@ function setup_nix --description "Create and mount a Btrfs /nix subvolume on imm
         return 1
     end
 
-    mount -t btrfs -o subvolid=5 UUID=$uuid $tmp_mount
+    $sudo mount -t btrfs -o subvolid=5 UUID=$uuid $tmp_mount
     or begin
         rmdir $tmp_mount
         echo "Unable to mount Btrfs top-level subvolume." >&2
@@ -60,38 +64,38 @@ function setup_nix --description "Create and mount a Btrfs /nix subvolume on imm
     end
 
     if not test -e $tmp_mount/nix
-        btrfs subvolume create $tmp_mount/nix
+        $sudo btrfs subvolume create $tmp_mount/nix
         or begin
-            umount $tmp_mount
+            $sudo umount $tmp_mount
             rmdir $tmp_mount
             echo "Unable to create Btrfs subvolume: nix" >&2
             return 1
         end
-    else if not btrfs subvolume show $tmp_mount/nix >/dev/null 2>&1
-        umount $tmp_mount
+    else if not $sudo btrfs subvolume show $tmp_mount/nix >/dev/null 2>&1
+        $sudo umount $tmp_mount
         rmdir $tmp_mount
         echo "Top-level Btrfs path 'nix' exists but is not a subvolume." >&2
         return 1
     end
 
-    umount $tmp_mount
+    $sudo umount $tmp_mount
     and rmdir $tmp_mount
     or begin
         echo "Warning: unable to clean temporary mount $tmp_mount" >&2
     end
 
-    mkdir -p /nix
+    $sudo mkdir -p /nix
 
     set -l fstab_line "UUID=$uuid /nix btrfs subvol=nix,compress=zstd:1 0 0"
     if test -e /etc/fstab
         if not awk '$2 == "/nix" { found=1 } END { exit !found }' /etc/fstab
-            printf "\n%s\n" $fstab_line >> /etc/fstab
+            printf "\n%s\n" $fstab_line | $sudo tee -a /etc/fstab >/dev/null
         end
     else
-        printf "%s\n" $fstab_line > /etc/fstab
+        printf "%s\n" $fstab_line | $sudo tee /etc/fstab >/dev/null
     end
 
-    mount /nix
+    $sudo mount /nix
     or begin
         echo "Created nix subvolume and fstab entry, but mounting /nix failed." >&2
         return 1
