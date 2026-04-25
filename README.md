@@ -91,8 +91,6 @@ The GitHub Actions workflow builds on pull requests, pushes to `main`, manual ru
 
 The workflow uses `GITHUB_TOKEN` with `packages: write`, so no extra registry secret is required for GHCR in the same repository.
 
-Non-PR builds enable Buildah layer caching with `--cache-from` and `--cache-to` against `ghcr.io/${{ github.repository }}-build-cache`. This reuses cached build layers when the Fedora Silverblue base image digest and build instructions have not changed. Pull requests build without writing cache.
-
 ## Updates
 
 Renovate is configured to pin and update the Fedora Silverblue base image digest in `Containerfile`, and to group GitHub Actions updates. DNF packages are intentionally unpinned for now; the scheduled weekly rebuild picks up package repository changes. If strict package version tracking is needed later, pin package versions in `packages/base.txt` and add a Renovate RPM custom manager.

@@ -9,13 +9,16 @@ on:
   schedule:
     - cron: "17 5 * * 1"
 
+concurrency:
+  group: build-bootc-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
   packages: write
 
 env:
   IMAGE_NAME: ghcr.io/${{ github.repository }}
-  IMAGE_TAG_VERSION: "44"
 
 jobs:
   build:
@@ -32,26 +35,15 @@ jobs:
         id: image
         run: |
           image_name="${IMAGE_NAME,,}"
+          version_tag="$(sed -n 's|^FROM quay.io/fedora/fedora-silverblue:\([0-9][0-9]*\).*|\1|p' Containerfile | head -n 1)"
+          if [[ -z "${version_tag}" ]]; then
+            echo "Unable to determine Fedora Silverblue version from Containerfile" >&2
+            exit 1
+          fi
           short_sha="${GITHUB_SHA::12}"
           echo "name=${image_name}" >> "${GITHUB_OUTPUT}"
-          echo "cache=${image_name}-build-cache" >> "${GITHUB_OUTPUT}"
+          echo "version_tag=${version_tag}" >> "${GITHUB_OUTPUT}"
           echo "short_sha=${short_sha}" >> "${GITHUB_OUTPUT}"
-
-      - name: Configure build cache
-        id: cache
-        run: |
-          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
-            exit 0
-          fi
-
-          {
-            echo "extra_args<<EOF"
-            echo "--cache-from"
-            echo "${{ steps.image.outputs.cache }}"
-            echo "--cache-to"
-            echo "${{ steps.image.outputs.cache }}"
-            echo "EOF"
-          } >> "${GITHUB_OUTPUT}"
 
       - name: Log in to GHCR
         if: github.event_name != 'pull_request'
@@ -67,12 +59,11 @@ jobs:
         with:
           image: ${{ steps.image.outputs.name }}
           tags: |
-            ${{ env.IMAGE_TAG_VERSION }}
+            ${{ steps.image.outputs.version_tag }}
             latest
             sha-${{ steps.image.outputs.short_sha }}
           archs: amd64
           layers: true
-          extra-args: ${{ steps.cache.outputs.extra_args }}
           containerfiles: |
             ./Containerfile
 

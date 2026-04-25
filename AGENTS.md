@@ -30,4 +30,4 @@ Do not commit secrets, personal tokens, or machine-specific configuration. Prefe
 
 ## Agent Notes & Lessons Learned
 
-Before changing this repository, inspect the tree, `README.md`, `Containerfile`, CI workflow, and recent commits. If `rg` is unavailable, fall back to `find`, `sed`, and `git log`. Keep generated docs within the requested length and verify with `wc -w`. After editing, check `git status --short` so only intended files changed. Prefer repo-specific commands and paths over boilerplate.
+Before changing this repository, inspect the tree, `README.md`, `Containerfile`, CI workflow, and recent commits. Keep generated docs within the requested length and verify with `wc -w`. After editing, check `git status --short` so only intended files changed. Prefer repo-specific commands and paths over boilerplate.
