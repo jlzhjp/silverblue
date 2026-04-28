@@ -46,5 +46,9 @@ RUN dnf -y install \
         /var/log/dnf5.log
 
 COPY tmpfiles/*.conf /usr/lib/tmpfiles.d/
+COPY systemd/*.mount /usr/lib/systemd/system/
+
+SHELL ["/bin/bash", "-c"]
+RUN mkdir -p /nix && systemctl --root / enable nix.mount
 
 RUN bootc container lint
