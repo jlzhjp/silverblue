@@ -1,7 +1,8 @@
 [Unit]
 Description=Bind mount /var/nix to /nix
 DefaultDependencies=no
-After=local-fs-pre.target
+Requires=systemd-tmpfiles-setup.service
+After=local-fs-pre.target systemd-tmpfiles-setup.service
 Before=local-fs.target
 
 [Mount]
