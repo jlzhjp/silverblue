@@ -48,6 +48,6 @@ RUN dnf -y install \
 COPY tmpfiles/*.conf /usr/lib/tmpfiles.d/
 COPY systemd/*.mount /usr/lib/systemd/system/
 
-RUN mkdir -p /nix; and systemctl --root / enable nix.mount
+RUN mkdir -p /nix /var/nix; and systemctl --root / enable nix.mount
 
 RUN bootc container lint
