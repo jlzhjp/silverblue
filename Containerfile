@@ -11,6 +11,7 @@ RUN set -eux; \
     xargs -r dnf -y install < /tmp/packages/bootstrap.txt
 
 COPY fish/vendor_functions.d/*.fish /usr/share/fish/vendor_functions.d/
+COPY systemd/*.service /usr/lib/systemd/system/
 
 SHELL ["/usr/bin/env", "HOME=/tmp", "XDG_CONFIG_HOME=/tmp/fish-config", "XDG_DATA_HOME=/tmp/fish-data", "/usr/bin/fish", "--no-config", "-c"]
 
@@ -31,6 +32,7 @@ RUN dnf -y install \
         print "IsRuntime=false"; \
         print ""; \
     }' /tmp/flatpaks/flathub.txt > /usr/share/flatpak/preinstall.d/10-flathub.preinstall; \
+    and systemctl enable --root=/ flatpak-preinstall.service; \
     and dnf clean all; \
     and rm -rf \
         /tmp/fish-config \
