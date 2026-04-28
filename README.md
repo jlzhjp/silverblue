@@ -4,7 +4,7 @@ This repository builds a Fedora 44 Silverblue-derived bootc image and publishes 
 
 ## Image
 
-- Base image: `quay.io/fedora/fedora-silverblue:44`
+- Base image: `quay.io/fedora/fedora-silverblue@sha256:... # 44`
 - Published image: `ghcr.io/${{ github.repository }}`
 - Architecture: `amd64` / `x86_64`
 - Initial custom packages: Docker Engine, Wireshark, Google Chrome, Visual Studio Code, Ghostty, Fish, Tailscale, sing-box, clash-meta, Nix, ibus-mozc, ibus-rime, RPM Fusion multimedia codecs, and VAAPI userspace drivers for AMD/Intel hardware acceleration
@@ -83,7 +83,7 @@ The build installs packages with DNF, cleans package caches, and runs `bootc con
 
 ## CI publishing
 
-The GitHub Actions workflow builds on pull requests, pushes to `main`, manual runs, and a weekly schedule. Pull requests build only. Pushes, scheduled runs, and manual runs publish to GHCR with these tags:
+The GitHub Actions workflow builds on pull requests, pushes to `main`, and manual runs. Pull requests build only. Pushes and manual runs publish to GHCR with these tags:
 
 - `44`
 - `latest`
@@ -93,6 +93,6 @@ The workflow uses `GITHUB_TOKEN` with `packages: write`, so no extra registry se
 
 ## Updates
 
-Renovate is configured to pin and update the Fedora Silverblue base image digest in `Containerfile`, and to group GitHub Actions updates. DNF packages are intentionally unpinned for now; the scheduled weekly rebuild picks up package repository changes. If strict package version tracking is needed later, pin package versions in `packages/base.txt` and add a Renovate RPM custom manager.
+Renovate is configured to track the Fedora Silverblue tag named in the `Containerfile` comment, keep its immutable digest pinned, and automerge digest-only updates after CI passes. GitHub Actions updates are grouped separately. DNF packages are intentionally unpinned for now; base OS refreshes arrive through Renovate digest PRs instead of scheduled rebuilds. If strict package version tracking is needed later, pin package versions in `packages/base.txt` and add a Renovate RPM custom manager.
 
 Packages are installed in one DNF transaction instead of one package per layer. That keeps dependency resolution consistent, reduces image metadata churn, and avoids repeating repository metadata downloads. Split package install layers only when there is a concrete cache boundary, such as a rarely changed large third-party application set versus frequently edited local content.

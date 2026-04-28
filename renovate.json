@@ -8,16 +8,63 @@
   "labels": [
     "dependencies"
   ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/(^|/)Containerfile$/"
+      ],
+      "matchStrings": [
+        "FROM quay\\.io/fedora/fedora-silverblue@(?<currentDigest>sha256:[a-f0-9]{64}) # (?<currentValue>[^\\s]+)"
+      ],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "quay.io/fedora/fedora-silverblue",
+      "versioningTemplate": "redhat",
+      "autoReplaceStringTemplate": "FROM {{{depName}}}@{{{newDigest}}} # {{{currentValue}}}"
+    }
+  ],
   "packageRules": [
     {
-      "description": "Group Fedora Silverblue base image updates",
+      "description": "Let the custom manager handle Fedora Silverblue digest tracking",
+      "matchManagers": [
+        "dockerfile"
+      ],
+      "matchPackageNames": [
+        "quay.io/fedora/fedora-silverblue"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Track Fedora Silverblue base image digest updates",
       "matchDatasources": [
         "docker"
       ],
       "matchPackageNames": [
         "quay.io/fedora/fedora-silverblue"
       ],
-      "groupName": "fedora silverblue base image"
+      "matchUpdateTypes": [
+        "digest"
+      ],
+      "groupName": "fedora silverblue base image",
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": false,
+      "ignoreTests": false
+    },
+    {
+      "description": "Keep Fedora Silverblue on the tag pinned in Containerfile",
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "quay.io/fedora/fedora-silverblue"
+      ],
+      "matchUpdateTypes": [
+        "major",
+        "minor",
+        "patch"
+      ],
+      "enabled": false
     },
     {
       "description": "Group GitHub Actions updates",
