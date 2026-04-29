@@ -18,6 +18,7 @@ libva-utils
 mesa-va-drivers-freeworld
 nix
 nix-daemon
+racket
 sing-box
 tailscale
 wireshark
