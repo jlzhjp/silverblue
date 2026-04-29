@@ -2,18 +2,16 @@
 Description=Preinstall configured Flatpak applications
 Documentation=man:flatpak(1)
 Wants=network-online.target
-After=network-online.target
+After=network-online.target dbus.service
 ConditionPathExists=/usr/share/flatpak/preinstall.d/10-flathub.preinstall
-ConditionPathExists=!/var/lib/flatpak-preinstall/success
+ConditionPathExists=!/var/lib/.flatpak-preinstall-success
 
 [Service]
 Type=oneshot
 Restart=on-failure
 RestartSec=5min
-ExecStartPre=/usr/bin/mkdir -p /var/lib/flatpak-preinstall
-ExecStart=/usr/bin/flatpak remote-add --system --if-not-exists --from flathub /usr/share/flatpak/remotes.d/flathub.flatpakrepo
 ExecStart=/usr/bin/flatpak preinstall --system --noninteractive -y
-ExecStartPost=/usr/bin/touch /var/lib/flatpak-preinstall/success
+ExecStartPost=/usr/bin/touch /var/lib/.flatpak-preinstall-success
 
 [Install]
 WantedBy=multi-user.target
