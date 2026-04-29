@@ -9,6 +9,7 @@ StartLimitBurst=3
 
 [Service]
 Type=oneshot
+ExecStartPre=/usr/bin/flatpak remote-modify --system --enable flathub
 ExecStart=/usr/bin/flatpak install --system --noninteractive -y flathub @FLATPAK_REFS@
 RemainAfterExit=true
 Restart=on-failure
