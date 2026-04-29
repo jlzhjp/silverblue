@@ -7,7 +7,7 @@ This repository builds a Fedora 44 Silverblue-derived bootc image and publishes 
 - Base image: `quay.io/fedora/fedora-silverblue@sha256:...`, tracking tag `44`
 - Published image: `ghcr.io/${{ github.repository }}`
 - Architecture: `amd64` / `x86_64`
-- Initial custom packages: Docker Engine, Wireshark, Google Chrome, Visual Studio Code, Ghostty, Fish, Tailscale, sing-box, clash-meta, Nix, ibus-mozc, ibus-rime, RPM Fusion multimedia codecs, and VAAPI userspace drivers for AMD/Intel hardware acceleration
+- Initial custom packages: Docker Engine, Wireshark, Google Chrome, Visual Studio Code, Ghostty, Fish, Tailscale, sing-box, clash-meta, Nix, ibus-mozc, ibus-rime, adw-gtk3, RPM Fusion multimedia codecs, and VAAPI userspace drivers for AMD/Intel hardware acceleration
 
 Google Chrome is currently x86_64-only, so the build intentionally publishes only an `amd64` image.
 
@@ -20,6 +20,12 @@ Google Chrome is currently x86_64-only, so the build intentionally publishes onl
 │   └── base.txt
 ├── flatpaks/
 │   └── flathub.txt
+├── dconf/
+│   ├── db/
+│   │   └── local.d/
+│   │       └── 00-gtk3-theme
+│   └── profile/
+│       └── user
 ├── fish/
 │   └── vendor_functions.d/
 │       ├── setup_fish_shell.fish
@@ -48,7 +54,9 @@ Google Chrome is currently x86_64-only, so the build intentionally publishes onl
 
 Add future DNF packages to `packages/base.txt`, one package per line. Add third-party RPM repositories under `repos/`; `Containerfile` copies all `*.repo` files into `/etc/yum.repos.d/`.
 
-Fish, Git, and Racket are installed from Fedora's native repositories. Docker Engine is installed from Docker's official Fedora RPM repository using `docker-ce`, `docker-ce-cli`, `containerd.io`, `docker-buildx-plugin`, and `docker-compose-plugin`. Wireshark is installed from Fedora's native repositories. Visual Studio Code is installed from Microsoft's official RPM repository using the `code` package. Ghostty is installed from the `scottames/ghostty` Fedora Copr. Nix uses Fedora's native `nix` and `nix-daemon` packages.
+Fish, Git, Racket, and adw-gtk3 are installed from Fedora's native repositories. Docker Engine is installed from Docker's official Fedora RPM repository using `docker-ce`, `docker-ce-cli`, `containerd.io`, `docker-buildx-plugin`, and `docker-compose-plugin`. Wireshark is installed from Fedora's native repositories. Visual Studio Code is installed from Microsoft's official RPM repository using the `code` package. Ghostty is installed from the `scottames/ghostty` Fedora Copr. Nix uses Fedora's native `nix` and `nix-daemon` packages.
+
+The image installs the adw-gtk3 GTK3 theme for system applications and the matching light and dark Flathub GTK3 theme extensions for Flatpak applications. System dconf defaults set `org.gnome.desktop.interface gtk-theme` to `adw-gtk3` for users who have not overridden the setting.
 
 Run `setup_fish_shell` as the target user to set that user's login shell to `/usr/bin/fish`. The function uses `sudo chsh`, so it may prompt for authentication. The image does not change global `useradd` defaults because that can affect package-created service accounts.
 

@@ -42,9 +42,11 @@ RUN set -euxo pipefail; \
 COPY sysusers/*.conf /usr/lib/sysusers.d/
 COPY tmpfiles/*.conf /usr/lib/tmpfiles.d/
 COPY systemd/*.mount /usr/lib/systemd/system/
+COPY dconf/ /etc/dconf/
 
 RUN set -euxo pipefail; \
     mkdir -p /nix /var/nix; \
+    dconf update; \
     systemctl --root=/ enable flatpak-preinstall.service; \
     systemctl --root=/ enable nix.mount
 

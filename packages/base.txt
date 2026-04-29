@@ -1,3 +1,4 @@
+adw-gtk3-theme
 clash-meta
 code
 containerd.io
