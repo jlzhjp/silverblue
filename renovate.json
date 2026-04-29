@@ -5,6 +5,11 @@
     "docker:pinDigests",
     "helpers:pinGitHubActionDigests"
   ],
+  "enabledManagers": [
+    "custom.regex",
+    "github-actions"
+  ],
+  "dependencyDashboardApproval": false,
   "labels": [
     "dependencies"
   ],
@@ -25,19 +30,9 @@
   ],
   "packageRules": [
     {
-      "description": "Let the custom manager handle Fedora Silverblue digest tracking",
-      "matchManagers": [
-        "dockerfile"
-      ],
-      "matchPackageNames": [
-        "quay.io/fedora/fedora-silverblue"
-      ],
-      "enabled": false
-    },
-    {
       "description": "Track Fedora Silverblue base image digest updates",
-      "matchDatasources": [
-        "docker"
+      "matchManagers": [
+        "custom.regex"
       ],
       "matchPackageNames": [
         "quay.io/fedora/fedora-silverblue"
@@ -48,13 +43,12 @@
       "groupName": "fedora silverblue base image",
       "automerge": true,
       "automergeType": "pr",
-      "platformAutomerge": false,
       "ignoreTests": false
     },
     {
       "description": "Keep Fedora Silverblue on the tag pinned in Containerfile",
-      "matchDatasources": [
-        "docker"
+      "matchManagers": [
+        "custom.regex"
       ],
       "matchPackageNames": [
         "quay.io/fedora/fedora-silverblue"
