@@ -14,6 +14,8 @@ google-chrome-stable
 ibus-mozc
 ibus-rime
 intel-media-driver
+libgda
+libgda-sqlite
 libva-utils
 mesa-va-drivers-freeworld
 nix
