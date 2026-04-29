@@ -1,5 +1,4 @@
 clash-meta
-btrfs-progs
 code
 containerd.io
 docker-buildx-plugin

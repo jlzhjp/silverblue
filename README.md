@@ -48,7 +48,7 @@ Google Chrome is currently x86_64-only, so the build intentionally publishes onl
 
 Add future DNF packages to `packages/base.txt`, one package per line. Add third-party RPM repositories under `repos/`; `Containerfile` copies all `*.repo` files into `/etc/yum.repos.d/`.
 
-Fish, Git, and `btrfs-progs` are installed from Fedora's native repositories. Docker Engine is installed from Docker's official Fedora RPM repository using `docker-ce`, `docker-ce-cli`, `containerd.io`, `docker-buildx-plugin`, and `docker-compose-plugin`. Wireshark is installed from Fedora's native repositories. Visual Studio Code is installed from Microsoft's official RPM repository using the `code` package. Ghostty is installed from the `scottames/ghostty` Fedora Copr. Nix uses Fedora's native `nix` and `nix-daemon` packages.
+Fish, Git, and Racket are installed from Fedora's native repositories. Docker Engine is installed from Docker's official Fedora RPM repository using `docker-ce`, `docker-ce-cli`, `containerd.io`, `docker-buildx-plugin`, and `docker-compose-plugin`. Wireshark is installed from Fedora's native repositories. Visual Studio Code is installed from Microsoft's official RPM repository using the `code` package. Ghostty is installed from the `scottames/ghostty` Fedora Copr. Nix uses Fedora's native `nix` and `nix-daemon` packages.
 
 Run `setup_fish_shell` as the target user to set that user's login shell to `/usr/bin/fish`. The function uses `sudo chsh`, so it may prompt for authentication. The image does not change global `useradd` defaults because that can affect package-created service accounts.
 
