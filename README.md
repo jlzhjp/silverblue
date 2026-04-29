@@ -24,7 +24,6 @@ Google Chrome is currently x86_64-only, so the build intentionally publishes onl
 │   └── vendor_functions.d/
 │       ├── setup_fish_shell.fish
 │       ├── setup_home_manager.fish
-│       ├── setup_nix.fish
 │       └── setup_package_groups.fish
 ├── repos/
 │   ├── docker-ce.repo
@@ -55,7 +54,7 @@ Run `setup_fish_shell` as the target user to set that user's login shell to `/us
 
 Run `setup_package_groups` after installing the system to add the current user to package-specific groups. The function currently adds the target user to `docker` and `wireshark` when those groups exist. Pass a username explicitly if needed: `setup_package_groups akari`.
 
-Run `setup_nix` once before using Nix. Fedora Silverblue's root is immutable, so the function creates a top-level Btrfs subvolume named `nix`, appends an idempotent `/etc/fstab` entry for `/nix`, and mounts it. It refuses to mount over files or non-directory content in `/nix`, but allows an empty directory structure.
+The image bind-mounts `/var/nix` at `/nix` with `nix.mount`, which is enabled during the image build.
 
 Run `setup_home_manager <git-url>` as the target user to clone a flake-based Home Manager config into `~/.config/home-manager` and apply it with `nix run home-manager/master -- switch --flake ~/.config/home-manager`. Useful options include `--ref <branch>`, `--directory <path>`, and `--no-switch`.
 
@@ -65,7 +64,7 @@ setup_home_manager git@github.com:example/home-manager.git
 setup_home_manager --ref main https://github.com/example/home-manager.git
 ```
 
-Flatpak is provided by the Fedora Silverblue base image. Add Flatpak applications to `flatpaks/flathub.txt`, one Flathub application ID per line. The build installs the Flathub remote definition into `/usr/share/flatpak/remotes.d/` and generates `/usr/share/flatpak/preinstall.d/10-flathub.preinstall`. The enabled `flatpak-preinstall.service` runs `flatpak preinstall --system --noninteractive -y` on boot and writes `/var/lib/flatpak-preinstall/success` only after the preinstall succeeds, so failed attempts are retried until they succeed.
+Flatpak is provided by the Fedora Silverblue base image. Add Flatpak applications to `flatpaks/flathub.txt`, one Flathub application ID per line. The build installs the Flathub remote definition into `/usr/share/flatpak/remotes.d/` and generates `/usr/share/flatpak/preinstall.d/10-flathub.preinstall`. The enabled `flatpak-preinstall.service` runs `flatpak preinstall -y` on boot and retries failed attempts with systemd restart limits.
 
 RPM Fusion free and nonfree release packages are installed during the build before the package list is resolved. The package install uses `--allowerasing` so codec packages such as RPM Fusion `ffmpeg` can replace Fedora split/free variants when needed.
 

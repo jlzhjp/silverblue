@@ -14,7 +14,7 @@ CI builds pull requests without publishing. Pushes to `main`, weekly schedules, 
 
 ## Coding Style & Naming Conventions
 
-Keep package and Flatpak lists plain: one item per line, no inline comments unless supported. Name repository files after the upstream or product, for example `google-chrome.repo`. Fish functions should use snake_case names matching their file, such as `setup_nix.fish`. Containerfile changes should preserve grouped DNF operations and cleanup.
+Keep package and Flatpak lists plain: one item per line, no inline comments unless supported. Name repository files after the upstream or product, for example `google-chrome.repo`. Fish functions should use snake_case names matching their file, such as `setup_home_manager.fish`. Containerfile changes should preserve grouped DNF operations and cleanup, including rotated DNF logs such as `/var/log/dnf5.log.1`.
 
 ## Testing Guidelines
 

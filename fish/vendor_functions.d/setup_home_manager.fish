@@ -41,12 +41,12 @@ function setup_home_manager --description "Install Home Manager and optionally c
     end
 
     if not test -d /nix
-        echo "/nix is missing. Run 'setup_nix' first." >&2
+        echo "/nix is missing. Ensure nix.mount is enabled and mounted." >&2
         return 1
     end
 
     if not findmnt /nix >/dev/null
-        echo "/nix is not mounted. Run 'setup_nix' first." >&2
+        echo "/nix is not mounted. Start it with: sudo systemctl enable --now nix.mount" >&2
         return 1
     end
 

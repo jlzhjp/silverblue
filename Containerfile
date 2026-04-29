@@ -24,7 +24,7 @@ RUN set -eux; \
         /var/cache/ldconfig \
         /var/cache/libdnf5 \
         /var/lib/dnf \
-        /var/log/dnf5.log
+        /var/log/dnf5.log*
 
 COPY flatpaks/flathub.txt /tmp/flatpaks/flathub.txt
 
@@ -48,7 +48,7 @@ COPY systemd/*.mount /usr/lib/systemd/system/
 
 RUN set -eux; \
     mkdir -p /nix /var/nix; \
-    systemctl enable --root=/ flatpak-preinstall.service; \
+    systemctl --root=/ enable flatpak-preinstall.service; \
     systemctl --root=/ enable nix.mount
 
 COPY fish/vendor_functions.d/*.fish /usr/share/fish/vendor_functions.d/
