@@ -41,9 +41,11 @@ jobs:
             exit 1
           fi
           short_sha="${GITHUB_SHA::12}"
-          echo "name=${image_name}" >> "${GITHUB_OUTPUT}"
-          echo "version_tag=${version_tag}" >> "${GITHUB_OUTPUT}"
-          echo "short_sha=${short_sha}" >> "${GITHUB_OUTPUT}"
+          {
+            echo "name=${image_name}"
+            echo "version_tag=${version_tag}"
+            echo "short_sha=${short_sha}"
+          } >> "${GITHUB_OUTPUT}"
 
       - name: Log in to GHCR
         if: github.event_name != 'pull_request'
@@ -97,8 +99,8 @@ jobs:
             package_path="/users/${REPOSITORY_OWNER}/packages/container/${package_name}/versions"
           fi
 
-          gh api --paginate --slurp "${package_path}?per_page=100" \
-            --jq 'flatten | sort_by(.created_at) | reverse | .[5:][] | .id' |
+          gh api --paginate --slurp "${package_path}?per_page=100" |
+          jq -r 'flatten | sort_by(.created_at) | reverse | .[5:][] | .id' |
           while read -r version_id; do
             [[ -n "${version_id}" ]] || continue
             gh api --method DELETE "${package_path}/${version_id}"
