@@ -40,4 +40,4 @@ Renovate is intentionally limited to `custom.regex` and `github-actions` manager
 
 Flatpak boot installation intentionally enables the system Flathub remote before running `flatpak install --system --noninteractive -y flathub ...` generated from `flatpaks/flathub.txt`; do not reintroduce `flatpak preinstall` or `/usr/share/flatpak/preinstall.d/` generation, because the preinstall path can try to autolaunch a session D-Bus without `$DISPLAY` during the system service.
 
-GNOME defaults are provided through keyfiles in `dconf/db/local.d/` plus `dconf/profile/user`; keep `dconf update` in the image build so `/etc/dconf/db/local` is compiled.
+GNOME defaults are provided through keyfiles in `dconf/db/local.d/`; keep `dconf update` in the image build so `/etc/dconf/db/local` is compiled. Fedora already provides `/etc/dconf/profile/user` with `system-db:local`, so do not copy a replacement profile unless the base image stops providing one.

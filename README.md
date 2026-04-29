@@ -24,8 +24,6 @@ Google Chrome is currently x86_64-only, so the build intentionally publishes onl
 │   ├── db/
 │   │   └── local.d/
 │   │       └── 00-gtk3-theme
-│   └── profile/
-│       └── user
 ├── fish/
 │   └── vendor_functions.d/
 │       ├── setup_fish_shell.fish
@@ -56,7 +54,7 @@ Add future DNF packages to `packages/base.txt`, one package per line. Add third-
 
 Fish, Git, Racket, and adw-gtk3 are installed from Fedora's native repositories. Docker Engine is installed from Docker's official Fedora RPM repository using `docker-ce`, `docker-ce-cli`, `containerd.io`, `docker-buildx-plugin`, and `docker-compose-plugin`. Wireshark is installed from Fedora's native repositories. Visual Studio Code is installed from Microsoft's official RPM repository using the `code` package. Ghostty is installed from the `scottames/ghostty` Fedora Copr. Nix uses Fedora's native `nix` and `nix-daemon` packages.
 
-The image installs the adw-gtk3 GTK3 theme for system applications and the matching light and dark Flathub GTK3 theme extensions for Flatpak applications. System dconf defaults set `org.gnome.desktop.interface gtk-theme` to `adw-gtk3` for users who have not overridden the setting.
+The image installs the adw-gtk3 GTK3 theme for system applications and the matching light and dark Flathub GTK3 theme extensions for Flatpak applications. System dconf defaults in the existing local database set `org.gnome.desktop.interface gtk-theme` to `adw-gtk3` for users who have not overridden the setting.
 
 Run `setup_fish_shell` as the target user to set that user's login shell to `/usr/bin/fish`. The function uses `sudo chsh`, so it may prompt for authentication. The image does not change global `useradd` defaults because that can affect package-created service accounts.
 
