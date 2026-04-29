@@ -82,7 +82,7 @@ The build installs packages with DNF, cleans package caches, and runs `bootc con
 
 ## CI publishing
 
-The GitHub Actions workflow builds on pull requests, pushes to `main`, weekly schedules, and manual runs. Pull requests build only. Pushes, schedules, and manual runs publish to GHCR with these tags:
+The GitHub Actions workflow builds on pull requests, pushes to `main`, and manual runs. Pull requests build only. Pushes and manual runs publish to GHCR with these tags:
 
 - `44`
 - `latest`
@@ -93,6 +93,6 @@ After each publish, the workflow deletes older GHCR container package versions a
 
 ## Updates
 
-Renovate is configured to track the Fedora Silverblue tag named in the `Containerfile` comment, keep its immutable digest pinned, and automerge digest-only updates after CI passes. GitHub Actions updates are grouped separately. DNF packages are intentionally unpinned for now; base image digest refreshes arrive through Renovate PRs, while scheduled rebuilds pick up package repository updates between digest changes. If strict package version tracking is needed later, pin package versions in `packages/base.txt` and add a Renovate RPM custom manager.
+Renovate is configured to track the Fedora Silverblue tag named in the `Containerfile` comment, keep its immutable digest pinned, and automerge digest-only updates after CI passes. GitHub Actions updates are grouped separately. DNF packages are intentionally unpinned for now; base image digest refreshes arrive through Renovate PRs, while push and manual rebuilds pick up package repository updates between digest changes. If strict package version tracking is needed later, pin package versions in `packages/base.txt` and add a Renovate RPM custom manager.
 
 Packages are installed in one DNF transaction instead of one package per layer. That keeps dependency resolution consistent, reduces image metadata churn, and avoids repeating repository metadata downloads. Split package install layers only when there is a concrete cache boundary, such as a rarely changed large third-party application set versus frequently edited local content.
