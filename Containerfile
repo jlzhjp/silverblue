@@ -1,4 +1,5 @@
-FROM quay.io/fedora/fedora-silverblue@sha256:4e0eb2fbd03f1b592df4545a57ad49f1085f67418e082b015c6296fb55301d19 # 44
+# 44
+FROM quay.io/fedora/fedora-silverblue@sha256:4e0eb2fbd03f1b592df4545a57ad49f1085f67418e082b015c6296fb55301d19
 
 COPY repos/*.repo /etc/yum.repos.d/
 COPY packages/bootstrap.txt /tmp/packages/bootstrap.txt

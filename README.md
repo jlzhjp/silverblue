@@ -4,7 +4,7 @@ This repository builds a Fedora 44 Silverblue-derived bootc image and publishes 
 
 ## Image
 
-- Base image: `quay.io/fedora/fedora-silverblue@sha256:... # 44`
+- Base image: `quay.io/fedora/fedora-silverblue@sha256:...`, tracking tag `44`
 - Published image: `ghcr.io/${{ github.repository }}`
 - Architecture: `amd64` / `x86_64`
 - Initial custom packages: Docker Engine, Wireshark, Google Chrome, Visual Studio Code, Ghostty, Fish, Tailscale, sing-box, clash-meta, Nix, ibus-mozc, ibus-rime, RPM Fusion multimedia codecs, and VAAPI userspace drivers for AMD/Intel hardware acceleration

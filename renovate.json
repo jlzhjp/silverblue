@@ -15,12 +15,12 @@
         "/(^|/)Containerfile$/"
       ],
       "matchStrings": [
-        "FROM quay\\.io/fedora/fedora-silverblue@(?<currentDigest>sha256:[a-f0-9]{64}) # (?<currentValue>[^\\s]+)"
+        "# (?<currentValue>[^\\s]+)\\s+FROM quay\\.io/fedora/fedora-silverblue@(?<currentDigest>sha256:[a-f0-9]{64})"
       ],
       "datasourceTemplate": "docker",
       "depNameTemplate": "quay.io/fedora/fedora-silverblue",
       "versioningTemplate": "redhat",
-      "autoReplaceStringTemplate": "FROM {{{depName}}}@{{{newDigest}}} # {{{currentValue}}}"
+      "autoReplaceStringTemplate": "# {{{currentValue}}}\nFROM {{{depName}}}@{{{newDigest}}}"
     }
   ],
   "packageRules": [
