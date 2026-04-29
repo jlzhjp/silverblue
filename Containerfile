@@ -4,7 +4,7 @@ FROM quay.io/fedora/fedora-silverblue@sha256:ec0495691d12b55da162cf92297549cd94f
 COPY repos/*.repo /etc/yum.repos.d/
 COPY packages/base.txt /tmp/packages/base.txt
 
-RUN set -eux; \
+RUN set -euxo pipefail; \
     if [ -L /opt ]; then rm /opt; fi; \
     mkdir -p /opt; \
     dnf -y install \
@@ -28,7 +28,7 @@ RUN set -eux; \
 
 COPY flatpaks/flathub.txt /tmp/flatpaks/flathub.txt
 
-RUN set -eux; \
+RUN set -euxo pipefail; \
     mkdir -p /usr/share/flatpak/remotes.d /usr/share/flatpak/preinstall.d; \
     curl -fsSL https://flathub.org/repo/flathub.flatpakrepo \
         -o /usr/share/flatpak/remotes.d/flathub.flatpakrepo; \
@@ -46,7 +46,7 @@ COPY sysusers/*.conf /usr/lib/sysusers.d/
 COPY tmpfiles/*.conf /usr/lib/tmpfiles.d/
 COPY systemd/*.mount /usr/lib/systemd/system/
 
-RUN set -eux; \
+RUN set -euxo pipefail; \
     mkdir -p /nix /var/nix; \
     systemctl --root=/ enable flatpak-preinstall.service; \
     systemctl --root=/ enable nix.mount
