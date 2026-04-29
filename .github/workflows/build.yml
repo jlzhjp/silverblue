@@ -5,6 +5,8 @@ on:
     branches:
       - main
   pull_request:
+  schedule:
+    - cron: '23 4 * * 0'
   workflow_dispatch:
 
 concurrency:
@@ -72,3 +74,32 @@ jobs:
           image: ${{ steps.build-image.outputs.image }}
           tags: ${{ steps.build-image.outputs.tags }}
           registry: ghcr.io
+
+  cleanup-ghcr:
+    name: Keep recent GHCR images
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name != 'pull_request'
+    steps:
+      - name: Delete older image versions
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER_TYPE: ${{ github.event.repository.owner.type }}
+          PACKAGE_NAME: ${{ github.event.repository.name }}
+          REPOSITORY_OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+
+          package_name="${PACKAGE_NAME,,}"
+          if [[ "${OWNER_TYPE}" == "Organization" ]]; then
+            package_path="/orgs/${REPOSITORY_OWNER}/packages/container/${package_name}/versions"
+          else
+            package_path="/users/${REPOSITORY_OWNER}/packages/container/${package_name}/versions"
+          fi
+
+          gh api --paginate --slurp "${package_path}?per_page=100" \
+            --jq 'flatten | sort_by(.created_at) | reverse | .[5:][] | .id' |
+          while read -r version_id; do
+            [[ -n "${version_id}" ]] || continue
+            gh api --method DELETE "${package_path}/${version_id}"
+          done

@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-This repository builds a Fedora 44 Silverblue-derived bootc image. The main build definition is `Containerfile`. Package inputs live in `packages/`: use `base.txt` for normal packages and `bootstrap.txt` only for tools needed before Fish is available. Flatpak IDs belong in `flatpaks/flathub.txt`, one per line. RPM repos live in `repos/*.repo`. Fish helpers are installed from `fish/vendor_functions.d/`. Tmpfiles rules are under `tmpfiles/`; CI is in `.github/workflows/build.yml`.
+This repository builds a Fedora 44 Silverblue-derived bootc image. The main build definition is `Containerfile`. Package inputs live in `packages/base.txt`. Flatpak IDs belong in `flatpaks/flathub.txt`, one per line. RPM repos live in `repos/*.repo`. Fish helpers are installed from `fish/vendor_functions.d/`. Systemd units and mounts live under `systemd/`; sysusers rules live under `sysusers/`; tmpfiles rules live under `tmpfiles/`. CI is in `.github/workflows/build.yml`.
 
 ## Build, Test, and Development Commands
 
@@ -10,7 +10,7 @@ This repository builds a Fedora 44 Silverblue-derived bootc image. The main buil
 - `podman run --rm fedora-silverblue-bootc:test bootc container lint`: reruns bootc lint against a built image.
 - `fish --no-config -n fish/vendor_functions.d/*.fish`: syntax-checks Fish helper functions.
 
-CI builds pull requests without publishing. Pushes to `main`, schedules, and manual runs publish `44`, `latest`, and `sha-<short-sha>` tags.
+CI builds pull requests without publishing. Pushes to `main`, weekly schedules, and manual runs publish `44`, `latest`, and `sha-<short-sha>` tags. After publishing, CI deletes older GHCR container package versions and keeps only the 5 most recent images.
 
 ## Coding Style & Naming Conventions
 
@@ -31,3 +31,7 @@ Do not commit secrets, personal tokens, or machine-specific configuration. Prefe
 ## Agent Notes & Lessons Learned
 
 Before changing this repository, inspect the tree, `README.md`, `Containerfile`, CI workflow, and recent commits. Keep generated docs within the requested length and verify with `wc -w`. After editing, check `git status --short` so only intended files changed. Prefer repo-specific commands and paths over boilerplate.
+
+At the end of every change turn, update this file when project descriptions, workflows, validation expectations, or agent lessons have changed. Record mistakes and their fixes here so future agents avoid repeating them.
+
+When editing GitHub Actions workflows, validate YAML locally when possible. `ruby` is not available in this workspace; `python3 -c 'import yaml; yaml.safe_load(open(".github/workflows/build.yml"))'` works here. For paginated GitHub API cleanup, use `gh api --paginate --slurp` before sorting so retention decisions see the full version list, not one page at a time.
