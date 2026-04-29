@@ -1,17 +1,18 @@
 [Unit]
-Description=Preinstall configured Flatpak applications
-Documentation=man:flatpak(1)
+Description=Preinstall Flatpaks
+After=network-online.target
 Wants=network-online.target
-After=network-online.target dbus.service
-ConditionPathExists=/usr/share/flatpak/preinstall.d/10-flathub.preinstall
-ConditionPathExists=!/var/lib/.flatpak-preinstall-success
+ConditionPathExists=/usr/bin/flatpak
+Documentation=man:flatpak-preinstall(1)
+StartLimitIntervalSec=600
+StartLimitBurst=3
 
 [Service]
 Type=oneshot
+ExecStart=/usr/bin/flatpak preinstall -y
+RemainAfterExit=true
 Restart=on-failure
-RestartSec=5min
-ExecStart=/usr/bin/flatpak preinstall --system --noninteractive -y
-ExecStartPost=/usr/bin/touch /var/lib/.flatpak-preinstall-success
+RestartSec=30
 
 [Install]
 WantedBy=multi-user.target
