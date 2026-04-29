@@ -17,7 +17,6 @@ Google Chrome is currently x86_64-only, so the build intentionally publishes onl
 .
 ├── Containerfile
 ├── packages/
-│   ├── bootstrap.txt
 │   └── base.txt
 ├── flatpaks/
 │   └── flathub.txt
@@ -36,6 +35,8 @@ Google Chrome is currently x86_64-only, so the build intentionally publishes onl
 │   └── vscode.repo
 ├── systemd/
 │   └── flatpak-preinstall.service
+├── sysusers/
+│   └── docker.conf
 ├── tmpfiles/
 │   ├── clash-meta.conf
 │   ├── docker.conf
@@ -46,7 +47,7 @@ Google Chrome is currently x86_64-only, so the build intentionally publishes onl
 └── renovate.json
 ```
 
-Add future DNF packages to `packages/base.txt`, one package per line. `packages/bootstrap.txt` is only for packages required before the main build shell is available; currently it installs Fish so later `RUN` steps can use `/usr/bin/fish`. Add third-party RPM repositories under `repos/`; `Containerfile` copies all `*.repo` files into `/etc/yum.repos.d/`.
+Add future DNF packages to `packages/base.txt`, one package per line. Add third-party RPM repositories under `repos/`; `Containerfile` copies all `*.repo` files into `/etc/yum.repos.d/`.
 
 Fish, Git, and `btrfs-progs` are installed from Fedora's native repositories. Docker Engine is installed from Docker's official Fedora RPM repository using `docker-ce`, `docker-ce-cli`, `containerd.io`, `docker-buildx-plugin`, and `docker-compose-plugin`. Wireshark is installed from Fedora's native repositories. Visual Studio Code is installed from Microsoft's official RPM repository using the `code` package. Ghostty is installed from the `scottames/ghostty` Fedora Copr. Nix uses Fedora's native `nix` and `nix-daemon` packages.
 
