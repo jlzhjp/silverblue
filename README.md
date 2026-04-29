@@ -7,7 +7,7 @@ This repository builds a Fedora 44 Silverblue-derived bootc image and publishes 
 - Base image: `quay.io/fedora/fedora-silverblue@sha256:...`, tracking tag `44`
 - Published image: `ghcr.io/${{ github.repository }}`
 - Architecture: `amd64` / `x86_64`
-- Initial custom packages: Docker Engine, Wireshark, Google Chrome, Visual Studio Code, Ghostty, Fish, Tailscale, sing-box, clash-meta, Nix, ibus-mozc, ibus-rime, libgda with SQLite support, adw-gtk3, RPM Fusion multimedia codecs, and VAAPI userspace drivers for AMD/Intel hardware acceleration
+- Initial custom packages: Docker Engine, Distrobox, Wireshark, Google Chrome, Visual Studio Code, Ghostty, Fish, Tailscale, sing-box, clash-meta, Nix, ibus-mozc, ibus-rime, libgda with SQLite support, adw-gtk3, RPM Fusion multimedia codecs, and VAAPI userspace drivers for AMD/Intel hardware acceleration
 
 Google Chrome is currently x86_64-only, so the build intentionally publishes only an `amd64` image.
 
@@ -17,7 +17,8 @@ Google Chrome is currently x86_64-only, so the build intentionally publishes onl
 .
 ├── Containerfile
 ├── packages/
-│   └── base.txt
+│   ├── base.txt
+│   └── remove.txt
 ├── flatpaks/
 │   └── flathub.txt
 ├── dconf/
@@ -50,9 +51,9 @@ Google Chrome is currently x86_64-only, so the build intentionally publishes onl
 └── renovate.json
 ```
 
-Add future DNF packages to `packages/base.txt`, one package per line. Add third-party RPM repositories under `repos/`; `Containerfile` copies all `*.repo` files into `/etc/yum.repos.d/`.
+Add future DNF packages to `packages/base.txt`, one package per line. Add base-image packages to remove to `packages/remove.txt`, one package per line. Add third-party RPM repositories under `repos/`; `Containerfile` copies all `*.repo` files into `/etc/yum.repos.d/`.
 
-Fish, Git, Racket, libgda with SQLite support, and adw-gtk3 are installed from Fedora's native repositories. Docker Engine is installed from Docker's official Fedora RPM repository using `docker-ce`, `docker-ce-cli`, `containerd.io`, `docker-buildx-plugin`, and `docker-compose-plugin`. Wireshark is installed from Fedora's native repositories. Visual Studio Code is installed from Microsoft's official RPM repository using the `code` package. Ghostty is installed from the `scottames/ghostty` Fedora Copr. Nix uses Fedora's native `nix` and `nix-daemon` packages.
+Fish, Git, Racket, Distrobox, libgda with SQLite support, and adw-gtk3 are installed from Fedora's native repositories. Docker Engine is installed from Docker's official Fedora RPM repository using `docker-ce`, `docker-ce-cli`, `containerd.io`, `docker-buildx-plugin`, and `docker-compose-plugin`. Wireshark is installed from Fedora's native repositories. Visual Studio Code is installed from Microsoft's official RPM repository using the `code` package. Ghostty is installed from the `scottames/ghostty` Fedora Copr. Nix uses Fedora's native `nix` and `nix-daemon` packages. Fedora Toolbox is removed from the base image through `packages/remove.txt`.
 
 The image installs the adw-gtk3 GTK3 theme for system applications and the matching light and dark Flathub GTK3 theme extensions for Flatpak applications. System dconf defaults in the existing local database set `org.gnome.desktop.interface gtk-theme` to `adw-gtk3` for users who have not overridden the setting.
 
@@ -84,7 +85,7 @@ Hardware video acceleration support includes `mesa-va-drivers-freeworld` for AMD
 podman build --arch amd64 -t fedora-silverblue-bootc:test .
 ```
 
-The build installs packages with DNF, cleans package caches, and runs `bootc container lint`.
+The build removes packages listed in `packages/remove.txt`, installs packages listed in `packages/base.txt` with DNF, cleans package caches, and runs `bootc container lint`.
 
 ## CI publishing
 
@@ -101,4 +102,4 @@ After each publish, the workflow deletes older GHCR container package versions a
 
 Renovate is configured to track the Fedora Silverblue tag named in the `Containerfile` comment, keep its immutable digest pinned, and automerge digest-only updates after CI passes. GitHub Actions updates are grouped separately. DNF packages are intentionally unpinned for now; base image digest refreshes arrive through Renovate PRs, while push and manual rebuilds pick up package repository updates between digest changes. If strict package version tracking is needed later, pin package versions in `packages/base.txt` and add a Renovate RPM custom manager.
 
-Packages are installed in one DNF transaction instead of one package per layer. That keeps dependency resolution consistent, reduces image metadata churn, and avoids repeating repository metadata downloads. Split package install layers only when there is a concrete cache boundary, such as a rarely changed large third-party application set versus frequently edited local content.
+Packages are removed and installed from plain list files instead of one package per layer. That keeps dependency resolution consistent, reduces image metadata churn, and avoids repeating repository metadata downloads. Split package install layers only when there is a concrete cache boundary, such as a rarely changed large third-party application set versus frequently edited local content.

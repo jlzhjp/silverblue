@@ -3,6 +3,7 @@ FROM quay.io/fedora/fedora-silverblue@sha256:ec0495691d12b55da162cf92297549cd94f
 
 COPY repos/*.repo /etc/yum.repos.d/
 COPY packages/base.txt /tmp/packages/base.txt
+COPY packages/remove.txt /tmp/packages/remove.txt
 
 RUN set -euxo pipefail; \
     if [ -L /opt ]; then rm /opt; fi; \
@@ -14,6 +15,7 @@ RUN set -euxo pipefail; \
         --setopt=install_weak_deps=False \
         --exclude=PackageKit-gstreamer-plugin \
         --allowerasing; \
+    xargs -r dnf -y remove < /tmp/packages/remove.txt; \
     xargs -r dnf -y install --allowerasing < /tmp/packages/base.txt; \
     dnf clean all; \
     rm -rf \

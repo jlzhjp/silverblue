@@ -6,6 +6,7 @@ docker-buildx-plugin
 docker-ce
 docker-ce-cli
 docker-compose-plugin
+distrobox
 ffmpeg
 fish
 git
