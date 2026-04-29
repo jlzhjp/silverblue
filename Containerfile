@@ -27,21 +27,18 @@ RUN set -euxo pipefail; \
         /var/log/dnf5.log*
 
 COPY flatpaks/flathub.txt /tmp/flatpaks/flathub.txt
+COPY systemd/*.service /usr/lib/systemd/system/
 
 RUN set -euxo pipefail; \
-    mkdir -p /usr/share/flatpak/remotes.d /usr/share/flatpak/preinstall.d; \
+    mkdir -p /usr/share/flatpak/remotes.d; \
     curl -fsSL https://flathub.org/repo/flathub.flatpakrepo \
         -o /usr/share/flatpak/remotes.d/flathub.flatpakrepo; \
-    awk 'NF && $1 !~ /^#/ { \
-        print "[Flatpak Preinstall " $1 "]"; \
-        print "Branch=stable"; \
-        print "IsRuntime=false"; \
-        print ""; \
-    }' /tmp/flatpaks/flathub.txt > /usr/share/flatpak/preinstall.d/10-flathub.preinstall; \
+    flatpak_refs="$(awk 'NF && $1 !~ /^#/ { print $1 }' /tmp/flatpaks/flathub.txt | paste -sd ' ' -)"; \
+    test -n "${flatpak_refs}"; \
+    sed -i "s|@FLATPAK_REFS@|${flatpak_refs}|" /usr/lib/systemd/system/flatpak-preinstall.service; \
     rm -rf \
         /tmp/flatpaks
 
-COPY systemd/*.service /usr/lib/systemd/system/
 COPY sysusers/*.conf /usr/lib/sysusers.d/
 COPY tmpfiles/*.conf /usr/lib/tmpfiles.d/
 COPY systemd/*.mount /usr/lib/systemd/system/

@@ -64,7 +64,7 @@ setup_home_manager git@github.com:example/home-manager.git
 setup_home_manager --ref main https://github.com/example/home-manager.git
 ```
 
-Flatpak is provided by the Fedora Silverblue base image. Add Flatpak applications to `flatpaks/flathub.txt`, one Flathub application ID per line. The build installs the Flathub remote definition into `/usr/share/flatpak/remotes.d/` and generates `/usr/share/flatpak/preinstall.d/10-flathub.preinstall`. The enabled `flatpak-preinstall.service` runs `flatpak preinstall -y` on boot and retries failed attempts with systemd restart limits.
+Flatpak is provided by the Fedora Silverblue base image. Add Flatpak applications to `flatpaks/flathub.txt`, one Flathub application ID per line. The build installs the Flathub remote definition into `/usr/share/flatpak/remotes.d/` and generates the enabled `flatpak-preinstall.service` command from that list. On boot, the service runs `flatpak install --system --noninteractive -y flathub ...` and retries failed attempts with systemd restart limits.
 
 RPM Fusion free and nonfree release packages are installed during the build before the package list is resolved. The package install uses `--allowerasing` so codec packages such as RPM Fusion `ffmpeg` can replace Fedora split/free variants when needed.
 
