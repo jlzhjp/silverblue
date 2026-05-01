@@ -46,9 +46,9 @@ Google Chrome is currently x86_64-only, so the build intentionally publishes onl
 │   ├── docker.conf
 │   └── tailscale.conf
 ├── .github/
+│   ├── renovate.json
 │   └── workflows/
 │       └── build.yml
-└── renovate.json
 ```
 
 Add future DNF packages to `packages/base.txt`, one package per line. Add base-image packages to remove to `packages/remove.txt`, one package per line. Add third-party RPM repositories under `repos/`; `Containerfile` copies all `*.repo` files into `/etc/yum.repos.d/`.
@@ -100,6 +100,6 @@ After each publish, the workflow deletes older GHCR container package versions a
 
 ## Updates
 
-Renovate is configured to track the Fedora Silverblue tag named in the `Containerfile` comment, keep its immutable digest pinned, and automerge digest-only updates after CI passes. GitHub Actions updates are grouped separately. DNF packages are intentionally unpinned for now; base image digest refreshes arrive through Renovate PRs, while push and manual rebuilds pick up package repository updates between digest changes. If strict package version tracking is needed later, pin package versions in `packages/base.txt` and add a Renovate RPM custom manager.
+Renovate is configured in `.github/renovate.json` to track the Fedora Silverblue tag named in the `Containerfile` comment, keep its immutable digest pinned, and automerge digest-only updates after CI passes. GitHub Actions updates are grouped separately. DNF packages are intentionally unpinned for now; base image digest refreshes arrive through Renovate PRs, while push and manual rebuilds pick up package repository updates between digest changes. If strict package version tracking is needed later, pin package versions in `packages/base.txt` and add a Renovate RPM custom manager.
 
 Packages are removed and installed from plain list files instead of one package per layer. That keeps dependency resolution consistent, reduces image metadata churn, and avoids repeating repository metadata downloads. Split package install layers only when there is a concrete cache boundary, such as a rarely changed large third-party application set versus frequently edited local content.
