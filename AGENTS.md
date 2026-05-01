@@ -10,7 +10,7 @@ This repository builds a Fedora 44 Silverblue-derived bootc image. The main buil
 - `podman run --rm fedora-silverblue-bootc:test bootc container lint`: reruns bootc lint against a built image.
 - `fish --no-config -n fish/vendor_functions.d/*.fish`: syntax-checks Fish helper functions.
 
-CI builds pull requests without publishing. Pushes to `main` and manual runs publish `44`, `latest`, and `sha-<short-sha>` tags. After publishing, CI deletes older GHCR container package versions and keeps only the 5 most recent images.
+CI builds pull requests without publishing. Pushes to `main` and manual runs publish `44`, `latest`, and `sha-<short-sha>` tags. CI builds OCI image metadata and published layers use `zstd:chunked` compression. After publishing, CI deletes older GHCR container package versions and keeps only the 5 most recent images.
 
 ## Coding Style & Naming Conventions
 
