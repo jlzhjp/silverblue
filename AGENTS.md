@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-This repository builds a Fedora 44 Silverblue-derived bootc image. The main build definition is `Containerfile`. Package install inputs live in `packages/base.txt`; base-image package removals live in `packages/remove.txt`. Flatpak IDs belong in `flatpaks/flathub.txt`, one per line. GNOME system defaults live under `dconf/` and are copied into `/etc/dconf/`. RPM repos live in `repos/*.repo`. Fish helpers are installed from `fish/vendor_functions.d/`. Systemd units and mounts live under `systemd/`; sysusers rules live under `sysusers/`; tmpfiles rules live under `tmpfiles/`. CI is in `.github/workflows/build.yml`; Renovate config is in `.github/renovate.json`.
+This repository builds a Fedora Silverblue-derived bootc image. The main build definition is `Containerfile`. Package install inputs live in `packages/base.txt`; base-image package removals live in `packages/remove.txt`. Flatpak IDs belong in `flatpaks/flathub.txt`, one per line. GNOME system defaults live under `dconf/` and are copied into `/etc/dconf/`. RPM repos live in `repos/*.repo`. Fish helpers are installed from `fish/vendor_functions.d/`. Systemd units and mounts live under `systemd/`; sysusers rules live under `sysusers/`; tmpfiles rules live under `tmpfiles/`. CI is in `.github/workflows/build.yml`; Renovate config is in `.github/renovate.json`.
 
 ## Build, Test, and Development Commands
 
@@ -10,7 +10,7 @@ This repository builds a Fedora 44 Silverblue-derived bootc image. The main buil
 - `podman run --rm fedora-silverblue-bootc:test bootc container lint`: reruns bootc lint against a built image.
 - `fish --no-config -n fish/vendor_functions.d/*.fish`: syntax-checks Fish helper functions.
 
-CI builds pull requests without publishing. Pushes to `main` and manual runs publish `44`, `latest`, and `sha-<short-sha>` tags. CI builds OCI image metadata, pushes only `sha-<short-sha>` with `zstd:chunked` compression, then retags that manifest as `44` and `latest` with `skopeo copy` so layers are not recompressed per tag. After publishing, CI deletes older GHCR container package versions and keeps only the 5 most recent images.
+CI builds pull requests without publishing. Pushes to `main` and manual runs publish the Fedora version tag from `Containerfile`, `latest`, and `sha-<short-sha>` tags. CI builds OCI image metadata, pushes only `sha-<short-sha>` with `zstd:chunked` compression, then retags that manifest as the Fedora version tag and `latest` with `skopeo copy` so layers are not recompressed per tag. After publishing, CI deletes older GHCR container package versions and keeps only the 5 most recent images.
 
 ## Coding Style & Naming Conventions
 
@@ -38,7 +38,7 @@ When editing GitHub Actions workflows, validate with `actionlint .github/workflo
 
 When publishing compressed images, keep the expensive `zstd:chunked` upload to a single content tag and move additional tags by manifest copy. Do not pass a fully qualified `ghcr.io/...` image name together with `registry: ghcr.io` to `redhat-actions/push-to-registry`, because that produces duplicated destinations such as `ghcr.io/ghcr.io/...`.
 
-Renovate config lives at `.github/renovate.json` and is intentionally limited to `custom.regex` and `github-actions` managers. The custom regex manager owns the digest-pinned Fedora Silverblue `Containerfile` base image; leaving the built-in `dockerfile` manager enabled creates noisy duplicate detection with an undefined version for the digest-only `FROM`. Renovate does not currently support naming individual regex custom managers, so keep Fedora package rules straightforward with `matchManagers: ["custom.regex"]` plus `matchPackageNames`. Do not keep Dockerfile-specific package rules while `dockerfile` is absent from `enabledManagers`; they are dead config. Keep `dependencyDashboardApproval` explicitly `false` so inherited Renovate presets do not require manual approval before digest PRs are created. Avoid unnecessary Renovate overrides such as `platformAutomerge` unless the repo needs non-default merge timing.
+Renovate config lives at `.github/renovate.json` and is intentionally limited to `dockerfile` and `github-actions` managers. The Fedora Silverblue `Containerfile` base image must stay in tagged digest form, such as `quay.io/fedora/fedora-silverblue:<version>@sha256:...`, so Renovate's Dockerfile manager can update Fedora major tags while `docker:pinDigests` keeps the reference immutable. Fedora Silverblue digest updates for the current major version may automerge, but major version updates must open PRs without automerge. Keep package rules scoped with `matchManagers` plus `matchPackageNames`. Avoid unnecessary Renovate overrides such as `platformAutomerge` unless the repo needs non-default merge timing.
 
 Flatpak boot installation intentionally enables the system Flathub remote before running `flatpak install --system --noninteractive -y flathub ...` generated from `flatpaks/flathub.txt`; do not reintroduce `flatpak preinstall` or `/usr/share/flatpak/preinstall.d/` generation, because the preinstall path can try to autolaunch a session D-Bus without `$DISPLAY` during the system service.
 

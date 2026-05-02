@@ -1,5 +1,4 @@
-# 44
-FROM quay.io/fedora/fedora-silverblue@sha256:011d88a6aa2c96afb3d5f92f5984ce51c109af94e98a6fa98adc8bb6505e36b1
+FROM quay.io/fedora/fedora-silverblue:44@sha256:011d88a6aa2c96afb3d5f92f5984ce51c109af94e98a6fa98adc8bb6505e36b1
 
 COPY repos/*.repo /etc/yum.repos.d/
 COPY packages/base.txt /tmp/packages/base.txt

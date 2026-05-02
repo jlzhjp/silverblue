@@ -1,10 +1,10 @@
 # Fedora Silverblue bootc image
 
-This repository builds a Fedora 44 Silverblue-derived bootc image and publishes it to GitHub Container Registry.
+This repository builds a Fedora Silverblue-derived bootc image and publishes it to GitHub Container Registry.
 
 ## Image
 
-- Base image: `quay.io/fedora/fedora-silverblue@sha256:...`, tracking tag `44`
+- Base image: `quay.io/fedora/fedora-silverblue:<version>@sha256:...`
 - Published image: `ghcr.io/${{ github.repository }}`
 - Architecture: `amd64` / `x86_64`
 - Initial custom packages: Docker Engine, Distrobox, Wireshark, Google Chrome, Visual Studio Code, Ghostty, Fish, Tailscale, sing-box, clash-meta, Nix, niri, ibus-mozc, ibus-rime, libgda with SQLite support, adw-gtk3, RPM Fusion multimedia codecs, and VAAPI userspace drivers for AMD/Intel hardware acceleration
@@ -91,15 +91,15 @@ The build removes packages listed in `packages/remove.txt`, installs packages li
 
 The GitHub Actions workflow builds on pull requests, pushes to `main`, and manual runs. Pull requests build only. Pushes and manual runs publish to GHCR with these tags:
 
-- `44`
+- the Fedora version tag from `Containerfile`
 - `latest`
 - `sha-<short-sha>`
 
 The workflow uses `GITHUB_TOKEN` with `packages: write`, so no extra registry secret is required for GHCR in the same repository.
-CI builds OCI image metadata, pushes image content only once under `sha-<short-sha>` with `zstd:chunked` compression, and then retags that same manifest as `44` and `latest` with `skopeo copy`. After each publish, the workflow deletes older GHCR container package versions and keeps only the 5 most recent images.
+CI builds OCI image metadata, pushes image content only once under `sha-<short-sha>` with `zstd:chunked` compression, and then retags that same manifest as the Fedora version tag and `latest` with `skopeo copy`. After each publish, the workflow deletes older GHCR container package versions and keeps only the 5 most recent images.
 
 ## Updates
 
-Renovate is configured in `.github/renovate.json` to track the Fedora Silverblue tag named in the `Containerfile` comment, keep its immutable digest pinned, and automerge digest-only updates after CI passes. GitHub Actions updates are grouped separately. DNF packages are intentionally unpinned for now; base image digest refreshes arrive through Renovate PRs, while push and manual rebuilds pick up package repository updates between digest changes. If strict package version tracking is needed later, pin package versions in `packages/base.txt` and add a Renovate RPM custom manager.
+Renovate is configured in `.github/renovate.json` to track the Fedora Silverblue tag in the `Containerfile` `FROM` reference, keep its immutable digest pinned, and automerge digest-only updates after CI passes. Major Fedora Silverblue tag updates open PRs but are never automerged. GitHub Actions updates are grouped separately. DNF packages are intentionally unpinned for now; base image digest refreshes arrive through Renovate PRs, while push and manual rebuilds pick up package repository updates between digest changes. If strict package version tracking is needed later, pin package versions in `packages/base.txt` and add a Renovate RPM custom manager.
 
 Packages are removed and installed from plain list files instead of one package per layer. That keeps dependency resolution consistent, reduces image metadata churn, and avoids repeating repository metadata downloads. Split package install layers only when there is a concrete cache boundary, such as a rarely changed large third-party application set versus frequently edited local content.
