@@ -1,7 +1,6 @@
 adw-gtk3-theme
 busybox
 clash-meta
-code
 containerd.io
 docker-buildx-plugin
 docker-ce
