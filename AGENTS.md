@@ -47,3 +47,5 @@ Flatpak boot installation intentionally enables the system Flathub remote before
 GNOME defaults are provided through keyfiles in `dconf/db/local.d/`; keep `dconf update` in the image build so `/etc/dconf/db/local` is compiled. Fedora already provides `/etc/dconf/profile/user` with `system-db:local`, so do not copy a replacement profile unless the base image stops providing one.
 
 The main package install from `packages/base.txt` intentionally uses `--setopt=install_weak_deps=False`; preserve that unless explicitly changing image size/dependency policy.
+
+RPM Fusion release RPM URLs in `Containerfile` intentionally use `$(rpm -E %fedora)` so they follow the Fedora version provided by the base image. Do not hard-code the Fedora major version in those URLs.

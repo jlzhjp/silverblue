@@ -73,7 +73,7 @@ setup_home_manager --ref main https://github.com/example/home-manager.git
 
 Flatpak is provided by the Fedora Silverblue base image. Add Flatpak applications to `flatpaks/flathub.txt`, one Flathub application ID per line. The build installs the Flathub remote definition into `/usr/share/flatpak/remotes.d/` and generates the enabled `flatpak-preinstall.service` command from that list. On boot, the service enables the system Flathub remote, runs `flatpak install --system --noninteractive -y flathub ...`, and retries failed attempts with systemd restart limits.
 
-RPM Fusion free and nonfree release packages are installed during the build before the package list is resolved. The package install uses `--allowerasing` so codec packages such as RPM Fusion `ffmpeg` can replace Fedora split/free variants when needed.
+RPM Fusion free and nonfree release packages are installed during the build before the package list is resolved. Their release RPM URLs use the base image's Fedora version from `rpm -E %fedora`, so Fedora major updates do not require a matching manual RPM Fusion version edit. The package install uses `--allowerasing` so codec packages such as RPM Fusion `ffmpeg` can replace Fedora split/free variants when needed.
 
 Multimedia support is installed with RPM Fusion's `multimedia` group using `install_weak_deps=False` and excluding `PackageKit-gstreamer-plugin`. The package list keeps only `ffmpeg` explicit so the image gets the full RPM Fusion FFmpeg build rather than relying only on Fedora's codec-limited FFmpeg libraries.
 
