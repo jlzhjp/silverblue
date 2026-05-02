@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+default_config_url="git@github.com:jlzhjp/dotfiles.git"
+config_url="${HOME_MANAGER_CONFIG_URL:-${default_config_url}}"
+config_dir="${HOME_MANAGER_CONFIG_DIR:-${HOME}/.config/home-manager}"
+config_ref="${HOME_MANAGER_CONFIG_REF:-}"
+
+case "${config_dir}" in
+\~ | \~/*)
+	config_dir="${HOME}${config_dir#"~"}"
+	;;
+esac
+
+if [[ "$(id -u)" -eq 0 ]]; then
+	echo "Run setup-home-manager as the target user, not root." >&2
+	exit 1
+fi
+
+for command_name in git nix findmnt pgrep; do
+	if ! command -v "${command_name}" >/dev/null 2>&1; then
+		echo "Missing required command: ${command_name}" >&2
+		exit 1
+	fi
+done
+
+if [[ ! -d /nix ]]; then
+	echo "/nix is missing. Ensure nix.mount is enabled and mounted." >&2
+	exit 1
+fi
+
+if ! findmnt /nix >/dev/null; then
+	echo "/nix is not mounted. Start it with: sudo systemctl enable --now nix.mount" >&2
+	exit 1
+fi
+
+if ! pgrep -x nix-daemon >/dev/null; then
+	echo "nix-daemon does not appear to be running. Start it with: sudo systemctl enable --now nix-daemon.service" >&2
+	exit 1
+fi
+
+mkdir -p "$(dirname "${config_dir}")"
+
+clone_config() {
+	clone_args=(clone)
+	if [[ -n "${config_ref}" ]]; then
+		clone_args+=(--branch "${config_ref}")
+	fi
+
+	git "${clone_args[@]}" "${config_url}" "${config_dir}"
+}
+
+if [[ -d "${config_dir}/.git" ]]; then
+	git -C "${config_dir}" fetch --all --prune
+
+	if [[ -n "${config_ref}" ]]; then
+		git -C "${config_dir}" checkout "${config_ref}"
+	fi
+
+	git -C "${config_dir}" pull --ff-only
+elif [[ -d "${config_dir}" ]] && [[ -z "$(find "${config_dir}" -mindepth 1 -print -quit)" ]]; then
+	clone_config
+elif [[ -e "${config_dir}" ]]; then
+	echo "${config_dir} already exists and is not a Git repository." >&2
+	exit 1
+else
+	clone_config
+fi
+
+if [[ ! -e "${config_dir}/flake.nix" ]]; then
+	echo "Missing flake config: ${config_dir}/flake.nix" >&2
+	exit 1
+fi
+
+nix run home-manager/master -- switch --flake "${config_dir}"

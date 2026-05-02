@@ -2,21 +2,21 @@
 
 ## Project Structure & Module Organization
 
-This repository builds a Fedora Silverblue-derived bootc image. The main build definition is `Containerfile`. Package install inputs live in `packages/base.txt`; base-image package removals live in `packages/remove.txt`. Fedora Copr projects live in `coprs/enabled.txt`, one `owner/project` per line. Flatpak IDs belong in `flatpaks/flathub.txt`, one per line. GNOME system defaults live under `dconf/` and are copied into `/etc/dconf/`. Non-Copr RPM repos live in `repos/*.repo`. Fish helpers are installed from `fish/vendor_functions.d/`. Systemd units and mounts live under `systemd/`; sysusers rules live under `sysusers/`; tmpfiles rules live under `tmpfiles/`. CI is in `.github/workflows/build.yml`; Renovate config is in `.github/renovate.json`.
+This repository builds a Fedora Silverblue-derived bootc image. The main build definition is `Containerfile`. Package install inputs live in `packages/base.txt`; base-image package removals live in `packages/remove.txt`. Fedora Copr projects live in `coprs/enabled.txt`, one `owner/project` per line. Flatpak IDs belong in `flatpaks/flathub.txt`, one per line. GNOME system defaults live under `dconf/` and are copied into `/etc/dconf/`. Non-Copr RPM repos live in `repos/*.repo`. Fish helpers are installed from `fish/vendor_functions.d/`. Systemd system units and mounts live under `systemd/`; systemd user units live under `systemd/user/`; sysusers rules live under `sysusers/`; tmpfiles rules live under `tmpfiles/`. CI is in `.github/workflows/build.yml`; Renovate config is in `.github/renovate.json`.
 
 ## Build, Test, and Development Commands
 
 - `podman build --arch amd64 -t fedora-silverblue-bootc:test .`: builds locally for the supported architecture.
 - `podman run --rm fedora-silverblue-bootc:test bootc container lint`: reruns bootc lint against a built image.
-- `just format`: formats JSON and YAML files with Prettier and Fish files with `fish_indent`.
-- `just lint`: runs formatting checks, GitHub Actions validation, YAML parsing, and Fish syntax checks.
+- `just format`: formats JSON and YAML files with Prettier, Bash helpers with `shfmt`, and Fish files with `fish_indent`.
+- `just lint`: runs formatting checks, GitHub Actions validation, YAML parsing, ShellCheck, and Fish syntax checks.
 - `fish --no-config -n fish/vendor_functions.d/*.fish`: syntax-checks Fish helper functions.
 
 CI builds pull requests without publishing, except PRs labeled `skip-ci`. Pushes to `main` and manual runs publish the Fedora version tag from `Containerfile`, `latest`, and `sha-<short-sha>` tags. CI builds OCI image metadata, pushes only `sha-<short-sha>` with `zstd:chunked` compression, then retags that manifest as the Fedora version tag and `latest` with `skopeo copy` so layers are not recompressed per tag. After publishing, CI deletes older GHCR container package versions and keeps only the 5 most recent images.
 
 ## Coding Style & Naming Conventions
 
-Keep package and Flatpak lists plain: one item per line, no inline comments unless supported. Name repository files after the upstream or product, for example `google-chrome.repo`. Fish functions should use snake_case names matching their file, such as `setup_home_manager.fish`. Containerfile changes should preserve grouped DNF operations and cleanup, including rotated DNF logs such as `/var/log/dnf5.log.1`.
+Keep package and Flatpak lists plain: one item per line, no inline comments unless supported. Name repository files after the upstream or product, for example `google-chrome.repo`. Fish functions should use snake_case names matching their file, such as `setup_fish_shell.fish`. Containerfile changes should preserve grouped DNF operations and cleanup, including rotated DNF logs such as `/var/log/dnf5.log.1`.
 
 ## Testing Guidelines
 
@@ -36,7 +36,7 @@ Before changing this repository, inspect the tree, `README.md`, `Containerfile`,
 
 At the end of every change turn, update this file when project descriptions, workflows, validation expectations, or agent lessons have changed. Record mistakes and their fixes here so future agents avoid repeating them.
 
-When editing GitHub Actions workflows, validate with `actionlint .github/workflows/build.yml`; it is available in this workspace. `python3 -c 'import yaml; yaml.safe_load(open(".github/workflows/build.yml"))'` is useful as a basic YAML parse check. For paginated GitHub API cleanup, use `gh api --paginate --slurp` before sorting so retention decisions see the full version list, not one page at a time. Do not combine `gh api --slurp` with `--jq` or `--template`; GitHub CLI rejects that combination, so pipe slurped output to `jq -r` instead.
+When editing GitHub Actions workflows, validate with `actionlint .github/workflows/build.yml`; it is available in this workspace. `python3 -c 'import yaml; yaml.safe_load(open(".github/workflows/build.yml"))'` is useful as a basic YAML parse check. For Bash helpers under `libexec/`, run `shellcheck` and keep `shfmt` wired into `just format` and `just lint`. For paginated GitHub API cleanup, use `gh api --paginate --slurp` before sorting so retention decisions see the full version list, not one page at a time. Do not combine `gh api --slurp` with `--jq` or `--template`; GitHub CLI rejects that combination, so pipe slurped output to `jq -r` instead.
 
 When publishing compressed images, keep the expensive `zstd:chunked` upload to a single content tag and move additional tags by manifest copy. Do not pass a fully qualified `ghcr.io/...` image name together with `registry: ghcr.io` to `redhat-actions/push-to-registry`, because that produces duplicated destinations such as `ghcr.io/ghcr.io/...`.
 
@@ -45,6 +45,8 @@ Renovate config lives at `.github/renovate.json` and is intentionally limited to
 Flatpak boot installation intentionally enables the system Flathub remote before running `flatpak install --system --noninteractive -y flathub ...` generated from `flatpaks/flathub.txt`; do not reintroduce `flatpak preinstall` or `/usr/share/flatpak/preinstall.d/` generation, because the preinstall path can try to autolaunch a session D-Bus without `$DISPLAY` during the system service.
 
 GNOME defaults are provided through keyfiles in `dconf/db/local.d/`; keep `dconf update` in the image build so `/etc/dconf/db/local` is compiled. Fedora already provides `/etc/dconf/profile/user` with `system-db:local`, so do not copy a replacement profile unless the base image stops providing one.
+
+Home Manager setup is handled by the systemd user unit `systemd/user/setup-home-manager.service`, installed to `/usr/lib/systemd/user/`, and the noninteractive helper `libexec/setup-home-manager`, installed to `/usr/libexec/setup-home-manager`. Do not reintroduce the old `setup_home_manager` Fish function. Users should configure the default dotfiles URL, ref, or directory with `systemctl --user edit setup-home-manager.service`, which creates a user drop-in under `~/.config/systemd/user/`; keep configuration outside `~/.config/home-manager` so it does not block the first clone.
 
 The main package install from `packages/base.txt` intentionally uses `--setopt=install_weak_deps=False`; preserve that unless explicitly changing image size/dependency policy.
 

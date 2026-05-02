@@ -37,6 +37,8 @@ RUN set -euxo pipefail; \
 
 COPY flatpaks/flathub.txt /tmp/flatpaks/flathub.txt
 COPY systemd/*.service /usr/lib/systemd/system/
+COPY systemd/user/*.service /usr/lib/systemd/user/
+COPY --chmod=0755 libexec/setup-home-manager /usr/libexec/setup-home-manager
 
 RUN set -euxo pipefail; \
     mkdir -p /usr/share/flatpak/remotes.d; \

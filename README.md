@@ -30,7 +30,6 @@ Google Chrome is currently x86_64-only, so the build intentionally publishes onl
 ├── fish/
 │   └── vendor_functions.d/
 │       ├── setup_fish_shell.fish
-│       ├── setup_home_manager.fish
 │       └── setup_package_groups.fish
 ├── repos/
 │   ├── docker-ce.repo
@@ -38,8 +37,13 @@ Google Chrome is currently x86_64-only, so the build intentionally publishes onl
 │   ├── sing-box.repo
 │   ├── tailscale.repo
 │   └── vscode.repo
+├── libexec/
+│   └── setup-home-manager
 ├── systemd/
-│   └── flatpak-preinstall.service
+│   ├── flatpak-preinstall.service
+│   ├── nix.mount
+│   └── user/
+│       └── setup-home-manager.service
 ├── sysusers/
 │   └── docker.conf
 ├── tmpfiles/
@@ -64,12 +68,22 @@ Run `setup_package_groups` after installing the system to add the current user t
 
 The image bind-mounts `/var/nix` at `/nix` with `nix.mount`, which is enabled during the image build.
 
-Run `setup_home_manager <git-url>` as the target user to clone a flake-based Home Manager config into `~/.config/home-manager` and apply it with `nix run home-manager/master -- switch --flake ~/.config/home-manager`. Useful options include `--ref <branch>`, `--directory <path>`, and `--no-switch`.
+The image includes a systemd user service, `setup-home-manager.service`, installed under `/usr/lib/systemd/user/`. It clones a flake-based Home Manager config into `~/.config/home-manager` on first run and applies it with `nix run home-manager/master -- switch --flake ~/.config/home-manager`. Later runs fetch, fast-forward pull, and switch again. The default config URL is `git@github.com:jlzhjp/dotfiles.git`. Override it with `systemctl --user edit setup-home-manager.service`; `HOME_MANAGER_CONFIG_URL`, `HOME_MANAGER_CONFIG_REF`, and `HOME_MANAGER_CONFIG_DIR` are supported.
 
 ```bash
 sudo systemctl enable --now nix-daemon.service
-setup_home_manager git@github.com:example/home-manager.git
-setup_home_manager --ref main https://github.com/example/home-manager.git
+
+systemctl --user edit setup-home-manager.service
+```
+
+```ini
+[Service]
+Environment=HOME_MANAGER_CONFIG_URL=https://github.com/example/home-manager.git
+Environment=HOME_MANAGER_CONFIG_REF=main
+```
+
+```bash
+systemctl --user enable --now setup-home-manager.service
 ```
 
 Flatpak is provided by the Fedora Silverblue base image. Add Flatpak applications to `flatpaks/flathub.txt`, one Flathub application ID per line. The build installs the Flathub remote definition into `/usr/share/flatpak/remotes.d/` and generates the enabled `flatpak-preinstall.service` command from that list. On boot, the service enables the system Flathub remote, runs `flatpak install --system --noninteractive -y flathub ...`, and retries failed attempts with systemd restart limits.
@@ -90,7 +104,7 @@ The build removes packages listed in `packages/remove.txt`, installs packages li
 
 ## Linting and formatting
 
-Use `just format` to format JSON and YAML files with Prettier and Fish files with `fish_indent`. Use `just lint` to run formatting checks, GitHub Actions validation, YAML parsing, and Fish syntax checks.
+Use `just format` to format JSON and YAML files with Prettier, Bash helpers with `shfmt`, and Fish files with `fish_indent`. Use `just lint` to run formatting checks, GitHub Actions validation, YAML parsing, ShellCheck, and Fish syntax checks.
 
 ## CI publishing
 
