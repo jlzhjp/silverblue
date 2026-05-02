@@ -1,6 +1,7 @@
 FROM quay.io/fedora/fedora-silverblue:44@sha256:011d88a6aa2c96afb3d5f92f5984ce51c109af94e98a6fa98adc8bb6505e36b1
 
 COPY repos/*.repo /etc/yum.repos.d/
+COPY coprs/enabled.txt /tmp/coprs/enabled.txt
 COPY packages/base.txt /tmp/packages/base.txt
 COPY packages/remove.txt /tmp/packages/remove.txt
 
@@ -10,6 +11,7 @@ RUN set -euxo pipefail; \
     dnf -y install \
         https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
         https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm; \
+    awk 'NF && $1 !~ /^#/ { print $1 }' /tmp/coprs/enabled.txt | xargs -r -n1 dnf -y copr enable; \
     dnf -y group install multimedia \
         --setopt=install_weak_deps=False \
         --exclude=PackageKit-gstreamer-plugin \
@@ -23,6 +25,7 @@ RUN set -euxo pipefail; \
     grep -Fx 'enable_partial_images = "true"' /etc/containers/storage.conf; \
     dnf clean all; \
     rm -rf \
+        /tmp/coprs \
         /run/dnf \
         /tmp/packages \
         /var/cache/dnf \
