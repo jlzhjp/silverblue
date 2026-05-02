@@ -40,8 +40,9 @@ Google Chrome is currently x86_64-only, so the build intentionally publishes onl
 ├── libexec/
 │   └── setup-home-manager
 ├── systemd/
-│   ├── flatpak-preinstall.service
-│   ├── nix.mount
+│   ├── system/
+│   │   ├── flatpak-preinstall.service
+│   │   └── nix.mount
 │   └── user/
 │       └── setup-home-manager.service
 ├── sysusers/

@@ -36,7 +36,7 @@ RUN set -euxo pipefail; \
         /var/log/dnf5.log*
 
 COPY flatpaks/flathub.txt /tmp/flatpaks/flathub.txt
-COPY systemd/*.service /usr/lib/systemd/system/
+COPY systemd/system/*.service /usr/lib/systemd/system/
 COPY systemd/user/*.service /usr/lib/systemd/user/
 COPY --chmod=0755 libexec/setup-home-manager /usr/libexec/setup-home-manager
 
@@ -52,7 +52,7 @@ RUN set -euxo pipefail; \
 
 COPY sysusers/*.conf /usr/lib/sysusers.d/
 COPY tmpfiles/*.conf /usr/lib/tmpfiles.d/
-COPY systemd/*.mount /usr/lib/systemd/system/
+COPY systemd/system/*.mount /usr/lib/systemd/system/
 COPY dconf/ /etc/dconf/
 
 RUN set -euxo pipefail; \
