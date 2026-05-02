@@ -22,6 +22,7 @@ libva-utils
 mesa-va-drivers-freeworld
 nix
 nix-daemon
+nix-legacy
 niri
 racket
 sing-box
