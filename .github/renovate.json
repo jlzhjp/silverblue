@@ -49,6 +49,9 @@
         "major"
       ],
       "groupName": "fedora silverblue base image",
+      "addLabels": [
+        "skip-ci"
+      ],
       "automerge": false
     },
     {
