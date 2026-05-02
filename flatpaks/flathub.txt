@@ -7,5 +7,4 @@ com.obsproject.Studio
 com.github.tchx84.Flatseal
 com.github.PintaProject.Pinta
 org.qbittorrent.qBittorrent
-io.github.getnf.embellish
 com.github.xournalpp.xournalpp
