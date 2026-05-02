@@ -17,6 +17,9 @@ RUN set -euxo pipefail; \
         --allowerasing; \
     xargs -r dnf -y remove < /tmp/packages/remove.txt; \
     xargs -r dnf -y install --allowerasing < /tmp/packages/base.txt; \
+    install -Dm0644 /usr/share/containers/storage.conf /etc/containers/storage.conf; \
+    sed -i 's|^# enable_partial_images = "false"$|enable_partial_images = "true"|' /etc/containers/storage.conf; \
+    grep -Fx 'enable_partial_images = "true"' /etc/containers/storage.conf; \
     dnf clean all; \
     rm -rf \
         /run/dnf \
