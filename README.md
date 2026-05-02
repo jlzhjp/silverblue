@@ -7,7 +7,7 @@ This repository builds a Fedora Silverblue-derived bootc image and publishes it 
 - Base image: `quay.io/fedora/fedora-silverblue:<version>@sha256:...`
 - Published image: `ghcr.io/${{ github.repository }}`
 - Architecture: `amd64` / `x86_64`
-- Initial custom packages: Docker Engine, Distrobox, Wireshark, Google Chrome, Visual Studio Code, Ghostty, Fish, Tailscale, sing-box, clash-meta, Nix, niri, ibus-mozc, ibus-rime, libgda with SQLite support, adw-gtk3, RPM Fusion multimedia codecs, and VAAPI userspace drivers for AMD/Intel hardware acceleration
+- Initial custom packages: Docker Engine, Distrobox, Wireshark, Google Chrome, Visual Studio Code, Ghostty, Fish, BusyBox, Tailscale, sing-box, clash-meta, Nix, niri, ibus-mozc, ibus-rime, libgda with SQLite support, adw-gtk3, RPM Fusion multimedia codecs, and VAAPI userspace drivers for AMD/Intel hardware acceleration
 
 Google Chrome is currently x86_64-only, so the build intentionally publishes only an `amd64` image.
 
