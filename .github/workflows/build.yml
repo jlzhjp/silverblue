@@ -16,7 +16,7 @@ permissions:
   packages: write
 
 env:
-  IMAGE_NAME: ghcr.io/${{ github.repository }}
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build:
@@ -59,8 +59,6 @@ jobs:
         with:
           image: ${{ steps.image.outputs.name }}
           tags: |
-            ${{ steps.image.outputs.version_tag }}
-            latest
             sha-${{ steps.image.outputs.short_sha }}
           archs: amd64
           layers: true
@@ -78,6 +76,25 @@ jobs:
           extra-args: |
             --format=oci
             --compression-format=zstd:chunked
+
+      - name: Retag pushed manifest
+        if: github.event_name != 'pull_request'
+        env:
+          IMAGE_NAME: ${{ steps.image.outputs.name }}
+          VERSION_TAG: ${{ steps.image.outputs.version_tag }}
+          SHORT_SHA: ${{ steps.image.outputs.short_sha }}
+        run: |
+          set -euo pipefail
+
+          source_tag="sha-${SHORT_SHA}"
+
+          for target_tag in "${VERSION_TAG}" latest; do
+            skopeo copy \
+              --all \
+              --preserve-digests \
+              "docker://ghcr.io/${IMAGE_NAME}:${source_tag}" \
+              "docker://ghcr.io/${IMAGE_NAME}:${target_tag}"
+          done
 
       - name: Delete older image versions
         if: github.event_name != 'pull_request'

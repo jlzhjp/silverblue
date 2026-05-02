@@ -10,7 +10,7 @@ This repository builds a Fedora 44 Silverblue-derived bootc image. The main buil
 - `podman run --rm fedora-silverblue-bootc:test bootc container lint`: reruns bootc lint against a built image.
 - `fish --no-config -n fish/vendor_functions.d/*.fish`: syntax-checks Fish helper functions.
 
-CI builds pull requests without publishing. Pushes to `main` and manual runs publish `44`, `latest`, and `sha-<short-sha>` tags. CI builds OCI image metadata and published layers use `zstd:chunked` compression. After publishing, CI deletes older GHCR container package versions and keeps only the 5 most recent images.
+CI builds pull requests without publishing. Pushes to `main` and manual runs publish `44`, `latest`, and `sha-<short-sha>` tags. CI builds OCI image metadata, pushes only `sha-<short-sha>` with `zstd:chunked` compression, then retags that manifest as `44` and `latest` with `skopeo copy` so layers are not recompressed per tag. After publishing, CI deletes older GHCR container package versions and keeps only the 5 most recent images.
 
 ## Coding Style & Naming Conventions
 
@@ -35,6 +35,8 @@ Before changing this repository, inspect the tree, `README.md`, `Containerfile`,
 At the end of every change turn, update this file when project descriptions, workflows, validation expectations, or agent lessons have changed. Record mistakes and their fixes here so future agents avoid repeating them.
 
 When editing GitHub Actions workflows, validate with `actionlint .github/workflows/build.yml`; it is available in this workspace. `python3 -c 'import yaml; yaml.safe_load(open(".github/workflows/build.yml"))'` is useful as a basic YAML parse check. For paginated GitHub API cleanup, use `gh api --paginate --slurp` before sorting so retention decisions see the full version list, not one page at a time. Do not combine `gh api --slurp` with `--jq` or `--template`; GitHub CLI rejects that combination, so pipe slurped output to `jq -r` instead.
+
+When publishing compressed images, keep the expensive `zstd:chunked` upload to a single content tag and move additional tags by manifest copy. Do not pass a fully qualified `ghcr.io/...` image name together with `registry: ghcr.io` to `redhat-actions/push-to-registry`, because that produces duplicated destinations such as `ghcr.io/ghcr.io/...`.
 
 Renovate config lives at `.github/renovate.json` and is intentionally limited to `custom.regex` and `github-actions` managers. The custom regex manager owns the digest-pinned Fedora Silverblue `Containerfile` base image; leaving the built-in `dockerfile` manager enabled creates noisy duplicate detection with an undefined version for the digest-only `FROM`. Renovate does not currently support naming individual regex custom managers, so keep Fedora package rules straightforward with `matchManagers: ["custom.regex"]` plus `matchPackageNames`. Do not keep Dockerfile-specific package rules while `dockerfile` is absent from `enabledManagers`; they are dead config. Keep `dependencyDashboardApproval` explicitly `false` so inherited Renovate presets do not require manual approval before digest PRs are created. Avoid unnecessary Renovate overrides such as `platformAutomerge` unless the repo needs non-default merge timing.
 

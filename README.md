@@ -96,7 +96,7 @@ The GitHub Actions workflow builds on pull requests, pushes to `main`, and manua
 - `sha-<short-sha>`
 
 The workflow uses `GITHUB_TOKEN` with `packages: write`, so no extra registry secret is required for GHCR in the same repository.
-CI builds OCI image metadata and pushes published layers with `zstd:chunked` compression. After each publish, the workflow deletes older GHCR container package versions and keeps only the 5 most recent images.
+CI builds OCI image metadata, pushes image content only once under `sha-<short-sha>` with `zstd:chunked` compression, and then retags that same manifest as `44` and `latest` with `skopeo copy`. After each publish, the workflow deletes older GHCR container package versions and keeps only the 5 most recent images.
 
 ## Updates
 
