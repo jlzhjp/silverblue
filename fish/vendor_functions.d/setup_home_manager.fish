@@ -4,7 +4,7 @@ function setup_home_manager --description "Install Home Manager and optionally c
     set -l branch_or_ref
     set -l skip_switch 0
 
-    argparse 'd/directory=' 'r/ref=' 'no-switch' 'h/help' -- $argv
+    argparse 'd/directory=' 'r/ref=' no-switch h/help -- $argv
     or return 2
 
     if set -q _flag_help

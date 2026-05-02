@@ -8,6 +8,8 @@ This repository builds a Fedora Silverblue-derived bootc image. The main build d
 
 - `podman build --arch amd64 -t fedora-silverblue-bootc:test .`: builds locally for the supported architecture.
 - `podman run --rm fedora-silverblue-bootc:test bootc container lint`: reruns bootc lint against a built image.
+- `just format`: formats JSON and YAML files with Prettier and Fish files with `fish_indent`.
+- `just lint`: runs formatting checks, GitHub Actions validation, YAML parsing, and Fish syntax checks.
 - `fish --no-config -n fish/vendor_functions.d/*.fish`: syntax-checks Fish helper functions.
 
 CI builds pull requests without publishing, except PRs labeled `skip-ci`. Pushes to `main` and manual runs publish the Fedora version tag from `Containerfile`, `latest`, and `sha-<short-sha>` tags. CI builds OCI image metadata, pushes only `sha-<short-sha>` with `zstd:chunked` compression, then retags that manifest as the Fedora version tag and `latest` with `skopeo copy` so layers are not recompressed per tag. After publishing, CI deletes older GHCR container package versions and keeps only the 5 most recent images.

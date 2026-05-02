@@ -87,6 +87,10 @@ podman build --arch amd64 -t fedora-silverblue-bootc:test .
 
 The build removes packages listed in `packages/remove.txt`, installs packages listed in `packages/base.txt` with DNF weak dependencies disabled, cleans package caches, and runs `bootc container lint`.
 
+## Linting and formatting
+
+Use `just format` to format JSON and YAML files with Prettier and Fish files with `fish_indent`. Use `just lint` to run formatting checks, GitHub Actions validation, YAML parsing, and Fish syntax checks.
+
 ## CI publishing
 
 The GitHub Actions workflow builds on pull requests, pushes to `main`, and manual runs. Pull requests build only. Pushes and manual runs publish to GHCR with these tags:

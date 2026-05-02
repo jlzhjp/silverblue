@@ -5,60 +5,35 @@
     "docker:pinDigests",
     "helpers:pinGitHubActionDigests"
   ],
-  "enabledManagers": [
-    "dockerfile",
-    "github-actions"
-  ],
-  "labels": [
-    "dependencies"
-  ],
+  "enabledManagers": ["dockerfile", "github-actions"],
+  "labels": ["dependencies"],
   "packageRules": [
     {
       "description": "Use Fedora-style versioning for the Silverblue base image",
-      "matchManagers": [
-        "dockerfile"
-      ],
-      "matchPackageNames": [
-        "quay.io/fedora/fedora-silverblue"
-      ],
+      "matchManagers": ["dockerfile"],
+      "matchPackageNames": ["quay.io/fedora/fedora-silverblue"],
       "versioning": "redhat"
     },
     {
       "description": "Automerge Fedora Silverblue base image digest updates",
-      "matchManagers": [
-        "dockerfile"
-      ],
-      "matchPackageNames": [
-        "quay.io/fedora/fedora-silverblue"
-      ],
-      "matchUpdateTypes": [
-        "digest"
-      ],
+      "matchManagers": ["dockerfile"],
+      "matchPackageNames": ["quay.io/fedora/fedora-silverblue"],
+      "matchUpdateTypes": ["digest"],
       "groupName": "fedora silverblue base image",
       "automerge": true
     },
     {
       "description": "Open Fedora Silverblue major version updates without automerge",
-      "matchManagers": [
-        "dockerfile"
-      ],
-      "matchPackageNames": [
-        "quay.io/fedora/fedora-silverblue"
-      ],
-      "matchUpdateTypes": [
-        "major"
-      ],
+      "matchManagers": ["dockerfile"],
+      "matchPackageNames": ["quay.io/fedora/fedora-silverblue"],
+      "matchUpdateTypes": ["major"],
       "groupName": "fedora silverblue base image",
-      "addLabels": [
-        "skip-ci"
-      ],
+      "addLabels": ["skip-ci"],
       "automerge": false
     },
     {
       "description": "Group GitHub Actions updates",
-      "matchManagers": [
-        "github-actions"
-      ],
+      "matchManagers": ["github-actions"],
       "groupName": "github actions"
     }
   ]
