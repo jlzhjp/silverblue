@@ -1,4 +1,4 @@
-FROM quay.io/fedora/fedora-silverblue:44@sha256:011d88a6aa2c96afb3d5f92f5984ce51c109af94e98a6fa98adc8bb6505e36b1
+FROM quay.io/fedora/fedora-silverblue:44@sha256:32e9f2025b4a140117c710073d837c2385d4de9770cb8724bcc4bd1dae10748a
 
 COPY repos/*.repo /etc/yum.repos.d/
 COPY coprs/enabled.txt /tmp/coprs/enabled.txt
