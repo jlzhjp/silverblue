@@ -4,80 +4,48 @@ This repository builds a Fedora Silverblue-derived bootc image and publishes it 
 
 ## Image
 
-- Base image: `quay.io/fedora/fedora-silverblue:<version>@sha256:...`
+- Base: `quay.io/fedora/fedora-silverblue:<version>@sha256:...`
 - Published image: `ghcr.io/${{ github.repository }}`
 - Architecture: `amd64` / `x86_64`
-- Initial custom packages: Docker Engine, Distrobox, Wireshark, Google Chrome, Visual Studio Code, Ghostty, Fish, BusyBox, Tailscale, sing-box, clash-meta, Nix, ibus-mozc, ibus-rime, libgda with SQLite support, adw-gtk3, RPM Fusion multimedia codecs, and VAAPI userspace drivers for AMD/Intel hardware acceleration
 
-Google Chrome is currently x86_64-only, so the build intentionally publishes only an `amd64` image.
+The image adds Docker Engine, Distrobox, Wireshark, Google Chrome, Visual Studio Code, Ghostty, Fish, BusyBox, Racket, Tailscale, sing-box, clash-meta, Nix, Japanese input engines, adw-gtk3, RPM Fusion multimedia support, and VAAPI drivers. Google Chrome is x86_64-only, so CI publishes only `amd64`.
 
-## Repository layout
+## Layout
 
-```text
-.
-├── Containerfile
-├── packages/
-│   ├── base.txt
-│   └── remove.txt
-├── coprs/
-│   └── enabled.txt
-├── flatpaks/
-│   └── flathub.txt
-├── dconf/
-│   ├── db/
-│   │   └── local.d/
-│   │       └── 00-gtk3-theme
-├── fish/
-│   └── vendor_functions.d/
-│       ├── setup_fish_shell.fish
-│       └── setup_package_groups.fish
-├── repos/
-│   ├── docker-ce.repo
-│   ├── google-chrome.repo
-│   ├── sing-box.repo
-│   ├── tailscale.repo
-│   └── vscode.repo
-├── libexec/
-│   └── setup-home-manager
-├── systemd/
-│   ├── system/
-│   │   ├── bootc-upgrade.service
-│   │   ├── bootc-upgrade.timer
-│   │   ├── flatpak-preinstall.service
-│   │   └── nix.mount
-│   └── user/
-│       └── setup-home-manager.service
-├── sysusers/
-│   └── docker.conf
-├── tmpfiles/
-│   ├── clash-meta.conf
-│   ├── docker.conf
-│   └── tailscale.conf
-├── .github/
-│   ├── renovate.json
-│   └── workflows/
-│       └── build.yml
-```
+- `Containerfile`: image build definition
+- `packages/base.txt`: DNF packages to install
+- `packages/remove.txt`: base-image packages to remove
+- `coprs/enabled.txt`: Fedora Copr projects to enable
+- `repos/*.repo`: non-Copr RPM repositories
+- `flatpaks/flathub.txt`: Flathub application IDs
+- `dconf/`: GNOME system defaults copied into `/etc/dconf/`
+- `fish/vendor_functions.d/`: Fish helper functions
+- `libexec/`: helper scripts installed into `/usr/libexec/`
+- `systemd/system/`: system units, mounts, and timers
+- `systemd/user/`: user units
+- `sysusers/`, `tmpfiles/`: system users, groups, directories, and state paths
+- `.github/workflows/build.yml`: CI build and publish workflow
+- `.github/renovate.json`: Renovate update policy
 
-Add future DNF packages to `packages/base.txt`, one package per line. Add base-image packages to remove to `packages/remove.txt`, one package per line. Add Fedora Copr projects to `coprs/enabled.txt`, one `owner/project` per line; the build enables them with `dnf copr enable`. Add non-Copr third-party RPM repositories under `repos/`; `Containerfile` copies all `*.repo` files into `/etc/yum.repos.d/`.
+Keep list files plain: one item per line.
 
-Fish, Racket, Distrobox, libgda with SQLite support, and adw-gtk3 are installed from Fedora's native repositories. Docker Engine is installed from Docker's official Fedora RPM repository using `docker-ce`, `docker-ce-cli`, `containerd.io`, `docker-buildx-plugin`, and `docker-compose-plugin`. Wireshark is installed from Fedora's native repositories. Visual Studio Code is installed from Microsoft's official RPM repository using the `code` package. Ghostty is installed from the `scottames/ghostty` Fedora Copr. Coprs are listed in `coprs/enabled.txt` and enabled during the image build instead of being checked in as generated repo files. Nix uses Fedora's native `nix` and `nix-daemon` packages. Fedora Toolbox is removed from the base image through `packages/remove.txt`.
+## Included Services
 
-The image installs the adw-gtk3 GTK3 theme for system applications and the matching light and dark Flathub GTK3 theme extensions for Flatpak applications. System dconf defaults in the existing local database set `org.gnome.desktop.interface gtk-theme` to `adw-gtk3` for users who have not overridden the setting.
+- `nix.mount` bind-mounts `/var/nix` at `/nix`.
+- `flatpak-preinstall.service` enables system Flathub and installs refs from `flatpaks/flathub.txt` on boot.
+- `bootc-upgrade.timer` runs `bootc upgrade` 10 minutes after boot and then daily. Missed runs are triggered after the next boot.
+- `setup-home-manager.service` is a user unit that clones and applies a flake-based Home Manager config.
 
-Run `setup_fish_shell` as the target user to set that user's login shell to `/usr/bin/fish`. The function uses `sudo chsh`, so it may prompt for authentication. The image does not change global `useradd` defaults because that can affect package-created service accounts.
-
-Run `setup_package_groups` after installing the system to add the current user to package-specific groups. The function currently adds the target user to `docker` and `wireshark` when those groups exist. Pass a username explicitly if needed: `setup_package_groups akari`.
-
-The image bind-mounts `/var/nix` at `/nix` with `nix.mount`, which is enabled during the image build.
-
-The image enables `bootc-upgrade.timer`, which runs `bootc upgrade` 10 minutes after boot and then daily while the machine is running. The timer is persistent, so a missed daily run is triggered after the next boot.
-
-The image includes a systemd user service, `setup-home-manager.service`, installed under `/usr/lib/systemd/user/`. It clones a flake-based Home Manager config into `~/.config/home-manager` on first run and applies it with `nix run home-manager/master -- switch --flake ~/.config/home-manager`. Later runs fetch, fast-forward pull, and switch again. The default config URL is `git@github.com:jlzhjp/dotfiles.git`. Override it with `systemctl --user edit setup-home-manager.service`; `HOME_MANAGER_CONFIG_URL`, `HOME_MANAGER_CONFIG_REF`, and `HOME_MANAGER_CONFIG_DIR` are supported.
+Enable the Nix daemon and Home Manager setup after install:
 
 ```bash
 sudo systemctl enable --now nix-daemon.service
+systemctl --user enable --now setup-home-manager.service
+```
 
+Override the default Home Manager source with a user drop-in:
+
+```bash
 systemctl --user edit setup-home-manager.service
 ```
 
@@ -87,43 +55,34 @@ Environment=HOME_MANAGER_CONFIG_URL=https://github.com/example/home-manager.git
 Environment=HOME_MANAGER_CONFIG_REF=main
 ```
 
+## User Helpers
+
+Run `setup_fish_shell` as the target user to change that user's login shell to `/usr/bin/fish`.
+
+Run `setup_package_groups` after install to add the current user to package-specific groups such as `docker` and `wireshark`. Pass a username explicitly if needed:
+
 ```bash
-systemctl --user enable --now setup-home-manager.service
+setup_package_groups akari
 ```
 
-Flatpak is provided by the Fedora Silverblue base image. Add Flatpak applications to `flatpaks/flathub.txt`, one Flathub application ID per line. The build installs the Flathub remote definition into `/usr/share/flatpak/remotes.d/` and generates the enabled `flatpak-preinstall.service` command from that list. On boot, the service enables the system Flathub remote, runs `flatpak install --system --noninteractive -y flathub ...`, and retries failed attempts with systemd restart limits.
-
-RPM Fusion free and nonfree release packages are installed during the build before the package list is resolved. Their release RPM URLs use the base image's Fedora version from `rpm -E %fedora`, so Fedora major updates do not require a matching manual RPM Fusion version edit. The package install uses `--allowerasing` so codec packages such as RPM Fusion `ffmpeg` can replace Fedora split/free variants when needed.
-
-Multimedia support is installed with RPM Fusion's `multimedia` group using `install_weak_deps=False` and excluding `PackageKit-gstreamer-plugin`. The package list keeps only `ffmpeg` explicit so the image gets the full RPM Fusion FFmpeg build rather than relying only on Fedora's codec-limited FFmpeg libraries.
-
-Hardware video acceleration support includes `mesa-va-drivers-freeworld` for AMD VAAPI codec support, `intel-media-driver` for modern Intel GPUs, and `libva-utils` for diagnostics such as `vainfo`.
-
-## Local build
+## Build And Validate
 
 ```bash
 podman build --arch amd64 -t fedora-silverblue-bootc:test .
+podman run --rm fedora-silverblue-bootc:test bootc container lint
+just lint
 ```
 
-The build removes packages listed in `packages/remove.txt`, installs packages listed in `packages/base.txt` with DNF weak dependencies disabled, cleans package caches, and runs `bootc container lint`.
+Use `just format` to format JSON, YAML, Bash, and Fish files.
 
-## Linting and formatting
+## CI And Updates
 
-Use `just format` to format JSON and YAML files with Prettier, Bash helpers with `shfmt`, and Fish files with `fish_indent`. Use `just lint` to run formatting checks, GitHub Actions validation, YAML parsing, ShellCheck, and Fish syntax checks.
+CI builds pull requests unless they are labeled `skip-ci`. Pushes to `main` and manual runs publish:
 
-## CI publishing
-
-The GitHub Actions workflow builds on pull requests, pushes to `main`, and manual runs. Pull requests build only. Pushes and manual runs publish to GHCR with these tags:
-
-- the Fedora version tag from `Containerfile`
+- the Fedora version from `Containerfile`
 - `latest`
 - `sha-<short-sha>`
 
-The workflow uses `GITHUB_TOKEN` with `packages: write`, so no extra registry secret is required for GHCR in the same repository.
-CI builds OCI image metadata, pushes image content only once under `sha-<short-sha>` with `zstd:chunked` compression, and then retags that same manifest as the Fedora version tag and `latest` with `skopeo copy`. After each publish, the workflow deletes older GHCR container package versions and keeps only the 5 most recent images.
+CI uploads the image once under the SHA tag with `zstd:chunked` compression, retags that manifest for the version and `latest`, and keeps only the 5 most recent GHCR image versions.
 
-## Updates
-
-Renovate is configured in `.github/renovate.json` to track the Fedora Silverblue tag in the `Containerfile` `FROM` reference, keep its immutable digest pinned, and automerge digest-only updates after CI passes. Major Fedora Silverblue tag updates open PRs but are never automerged, and they are labeled `skip-ci` so the build workflow does not run automatically. GitHub Actions updates are grouped separately. DNF packages are intentionally unpinned for now; base image digest refreshes arrive through Renovate PRs, while push and manual rebuilds pick up package repository updates between digest changes. If strict package version tracking is needed later, pin package versions in `packages/base.txt` and add a Renovate RPM custom manager.
-
-Packages are removed and installed from plain list files instead of one package per layer. That keeps dependency resolution consistent, reduces image metadata churn, and avoids repeating repository metadata downloads. Split package install layers only when there is a concrete cache boundary, such as a rarely changed large third-party application set versus frequently edited local content.
+Renovate tracks the Fedora Silverblue base tag and digest, plus GitHub Actions. Digest-only base updates may automerge after CI passes. Major Fedora updates open PRs with `skip-ci`.
