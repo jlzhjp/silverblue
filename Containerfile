@@ -69,7 +69,7 @@ COPY fish/vendor_functions.d/*.fish /usr/share/fish/vendor_functions.d/
 
 RUN bootc container lint
 
-FROM quay.io/coreos/chunkah AS chunkah
+FROM quay.io/coreos/chunkah@sha256:faa8209f267fd1b384f3f4008a27ac0603333aab0d206bb146faf326282c64b4 AS chunkah
 ARG CHUNKAH_CONFIG_STR
 
 RUN --mount=from=builder,src=/,target=/chunkah,ro \
