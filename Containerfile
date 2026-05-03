@@ -1,4 +1,6 @@
-FROM quay.io/fedora/fedora-silverblue:44@sha256:32e9f2025b4a140117c710073d837c2385d4de9770cb8724bcc4bd1dae10748a
+ARG CHUNKAH_CONFIG_STR
+
+FROM quay.io/fedora/fedora-silverblue:44@sha256:32e9f2025b4a140117c710073d837c2385d4de9770cb8724bcc4bd1dae10748a AS builder
 
 COPY repos/*.repo /etc/yum.repos.d/
 COPY coprs/enabled.txt /tmp/coprs/enabled.txt
@@ -66,3 +68,17 @@ RUN set -euxo pipefail; \
 COPY fish/vendor_functions.d/*.fish /usr/share/fish/vendor_functions.d/
 
 RUN bootc container lint
+
+FROM quay.io/coreos/chunkah AS chunkah
+ARG CHUNKAH_CONFIG_STR
+
+RUN --mount=from=builder,src=/,target=/chunkah,ro \
+    --mount=type=bind,target=/run/src,rw \
+    chunkah build \
+        --prune /sysroot/ \
+        --max-layers 128 \
+        --label ostree.commit- \
+        --label ostree.final-diffid- \
+        > /run/src/out.ociarchive
+
+FROM oci-archive:out.ociarchive

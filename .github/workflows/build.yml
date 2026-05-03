@@ -34,7 +34,12 @@ jobs:
         id: image
         run: |
           image_name="${IMAGE_NAME,,}"
-          version_tag="$(sed -n 's|^FROM quay\.io/fedora/fedora-silverblue:\([0-9][0-9]*\)@sha256:[a-f0-9]\{64\}$|\1|p' Containerfile | head -n 1)"
+          base_image="$(sed -n 's|^FROM \(quay\.io/fedora/fedora-silverblue:[0-9][0-9]*@sha256:[a-f0-9]\{64\}\)\( AS .*\)\{0,1\}$|\1|p' Containerfile | head -n 1)"
+          version_tag="$(sed -n 's|^FROM quay\.io/fedora/fedora-silverblue:\([0-9][0-9]*\)@sha256:[a-f0-9]\{64\}\( AS .*\)\{0,1\}$|\1|p' Containerfile | head -n 1)"
+          if [[ -z "${base_image}" ]]; then
+            echo "Unable to determine Fedora Silverblue base image from Containerfile" >&2
+            exit 1
+          fi
           if [[ -z "${version_tag}" ]]; then
             echo "Unable to determine Fedora Silverblue version from Containerfile" >&2
             exit 1
@@ -42,6 +47,7 @@ jobs:
           short_sha="${GITHUB_SHA::12}"
           {
             echo "name=${image_name}"
+            echo "base_image=${base_image}"
             echo "version_tag=${version_tag}"
             echo "short_sha=${short_sha}"
           } >> "${GITHUB_OUTPUT}"
@@ -54,6 +60,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Inspect base image
+        id: base-config
+        env:
+          BASE_IMAGE: ${{ steps.image.outputs.base_image }}
+        run: |
+          set -euo pipefail
+
+          podman pull "${BASE_IMAGE}"
+          base_config="$(podman inspect "${BASE_IMAGE}" | jq -c .)"
+          echo "config=${base_config}" >> "${GITHUB_OUTPUT}"
+
       - name: Build image
         id: build-image
         uses: redhat-actions/buildah-build@7a95fa7ee0f02d552a32753e7414641a04307056 # v2.13
@@ -64,6 +81,12 @@ jobs:
           archs: amd64
           layers: true
           oci: true
+          build-args: |
+            CHUNKAH_CONFIG_STR=${{ steps.base-config.outputs.config }}
+          extra-args: |
+            --skip-unused-stages=false
+            --volume=${{ github.workspace }}:/run/src
+            --security-opt=label=disable
           containerfiles: |
             ./Containerfile
 

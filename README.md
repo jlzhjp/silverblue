@@ -68,7 +68,13 @@ setup_package_groups akari
 ## Build And Validate
 
 ```bash
-podman build --arch amd64 -t fedora-silverblue-bootc:test .
+base_image="$(sed -n 's|^FROM \(quay\.io/fedora/fedora-silverblue:[0-9][0-9]*@sha256:[a-f0-9]\{64\}\)\( AS .*\)\{0,1\}$|\1|p' Containerfile | head -n 1)"
+podman pull "${base_image}"
+podman build --arch amd64 --skip-unused-stages=false \
+  --volume "$(pwd):/run/src" \
+  --security-opt=label=disable \
+  --build-arg "CHUNKAH_CONFIG_STR=$(podman inspect "${base_image}" | jq -c .)" \
+  -t fedora-silverblue-bootc:test .
 podman run --rm fedora-silverblue-bootc:test bootc container lint
 just lint
 ```
@@ -83,6 +89,6 @@ CI builds pull requests unless they are labeled `skip-ci`. Pushes to `main` and 
 - `latest`
 - `sha-<short-sha>`
 
-CI uploads the image once under the SHA tag with `zstd:chunked` compression, retags that manifest for the version and `latest`, and keeps only the 5 most recent GHCR image versions.
+CI repacks the completed bootc rootfs with chunkah for content-based layer reuse, uploads the image once under the SHA tag with `zstd:chunked` compression, retags that manifest for the version and `latest`, and keeps only the 5 most recent GHCR image versions.
 
 Renovate tracks the Fedora Silverblue base tag and digest, plus GitHub Actions. Digest-only base updates may automerge after CI passes. Major Fedora updates open PRs with `skip-ci`.

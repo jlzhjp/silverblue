@@ -6,4 +6,5 @@
 # Local container/build artifacts
 *.tar
 *.oci
+*.ociarchive
 *.log
