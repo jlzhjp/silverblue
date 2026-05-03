@@ -1,0 +1,11 @@
+[Unit]
+Description=Run bootc upgrade daily after boot
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=1d
+Persistent=true
+Unit=bootc-upgrade.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,14 @@
+[Unit]
+Description=Upgrade bootc image
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/usr/bin/bootc
+Documentation=man:bootc-upgrade(8)
+StartLimitIntervalSec=600
+StartLimitBurst=3
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bootc upgrade
+Restart=on-failure
+RestartSec=30

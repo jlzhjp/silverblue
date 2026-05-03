@@ -53,3 +53,5 @@ The main package install from `packages/base.txt` intentionally uses `--setopt=i
 RPM Fusion release RPM URLs in `Containerfile` intentionally use `$(rpm -E %fedora)` so they follow the Fedora version provided by the base image. Do not hard-code the Fedora major version in those URLs.
 
 Ghostty is installed from a Fedora Copr listed in `coprs/enabled.txt`. Keep Copr projects in that list and enable them in `Containerfile` with `dnf copr enable` before resolving `packages/base.txt`; do not add checked-in generated Copr `.repo` files under `repos/`.
+
+Automatic bootc updates are handled by `systemd/system/bootc-upgrade.timer`, which runs `systemd/system/bootc-upgrade.service` 10 minutes after boot and then daily. Keep the timer enabled in `Containerfile`; do not enable the service directly, because it is a oneshot unit intended to be timer-triggered.

@@ -41,6 +41,8 @@ Google Chrome is currently x86_64-only, so the build intentionally publishes onl
 │   └── setup-home-manager
 ├── systemd/
 │   ├── system/
+│   │   ├── bootc-upgrade.service
+│   │   ├── bootc-upgrade.timer
 │   │   ├── flatpak-preinstall.service
 │   │   └── nix.mount
 │   └── user/
@@ -68,6 +70,8 @@ Run `setup_fish_shell` as the target user to set that user's login shell to `/us
 Run `setup_package_groups` after installing the system to add the current user to package-specific groups. The function currently adds the target user to `docker` and `wireshark` when those groups exist. Pass a username explicitly if needed: `setup_package_groups akari`.
 
 The image bind-mounts `/var/nix` at `/nix` with `nix.mount`, which is enabled during the image build.
+
+The image enables `bootc-upgrade.timer`, which runs `bootc upgrade` 10 minutes after boot and then daily while the machine is running. The timer is persistent, so a missed daily run is triggered after the next boot.
 
 The image includes a systemd user service, `setup-home-manager.service`, installed under `/usr/lib/systemd/user/`. It clones a flake-based Home Manager config into `~/.config/home-manager` on first run and applies it with `nix run home-manager/master -- switch --flake ~/.config/home-manager`. Later runs fetch, fast-forward pull, and switch again. The default config URL is `git@github.com:jlzhjp/dotfiles.git`. Override it with `systemctl --user edit setup-home-manager.service`; `HOME_MANAGER_CONFIG_URL`, `HOME_MANAGER_CONFIG_REF`, and `HOME_MANAGER_CONFIG_DIR` are supported.
 
