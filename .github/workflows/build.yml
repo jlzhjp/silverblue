@@ -23,12 +23,12 @@ jobs:
     name: Build and publish
     if: github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'skip-ci')
     runs-on: ubuntu-latest
+    container:
+      image: quay.io/fedora/fedora-bootc:latest
+      options: --privileged
     steps:
       - name: Check out repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Free runner disk space
-        run: sudo rm -rf /opt/hostedtoolcache
 
       - name: Normalize image name
         id: image
@@ -78,20 +78,12 @@ jobs:
           rm -rf "${CHUNK_DIR}"
           mkdir -p "${CHUNK_DIR}"
 
-          buildah push "${SOURCE_IMAGE}" "oci-archive:${CHUNK_DIR}/source.oci"
-
-          chunker="$(buildah from "${SOURCE_IMAGE}")"
-          trap 'buildah rm "${chunker}"' EXIT
-
-          buildah run --volume "${CHUNK_DIR}:/work" "${chunker}" -- \
-            skopeo copy oci-archive:/work/source.oci containers-storage:localhost/source:latest
-          buildah run --volume "${CHUNK_DIR}:/work" "${chunker}" -- \
-            rpm-ostree compose build-chunked-oci \
-              --bootc \
-              --format-version=2 \
-              --from=localhost/source:latest \
-              --reference="${CHUNK_REFERENCE}" \
-              --output=oci:/work/chunked
+          rpm-ostree compose build-chunked-oci \
+            --bootc \
+            --format-version=2 \
+            --from="${SOURCE_IMAGE}" \
+            --reference="${CHUNK_REFERENCE}" \
+            --output="oci:${CHUNK_DIR}/chunked"
 
       - name: Push chunked image
         if: github.event_name != 'pull_request'
