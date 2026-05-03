@@ -7,7 +7,7 @@ This repository builds a Fedora Silverblue-derived bootc image and publishes it 
 - Base image: `quay.io/fedora/fedora-silverblue:<version>@sha256:...`
 - Published image: `ghcr.io/${{ github.repository }}`
 - Architecture: `amd64` / `x86_64`
-- Initial custom packages: Docker Engine, Distrobox, Wireshark, Google Chrome, Visual Studio Code, Ghostty, Fish, BusyBox, Tailscale, sing-box, clash-meta, Nix, niri, ibus-mozc, ibus-rime, libgda with SQLite support, adw-gtk3, RPM Fusion multimedia codecs, and VAAPI userspace drivers for AMD/Intel hardware acceleration
+- Initial custom packages: Docker Engine, Distrobox, Wireshark, Google Chrome, Visual Studio Code, Ghostty, Fish, BusyBox, Tailscale, sing-box, clash-meta, Nix, ibus-mozc, ibus-rime, libgda with SQLite support, adw-gtk3, RPM Fusion multimedia codecs, and VAAPI userspace drivers for AMD/Intel hardware acceleration
 
 Google Chrome is currently x86_64-only, so the build intentionally publishes only an `amd64` image.
 
@@ -59,7 +59,7 @@ Google Chrome is currently x86_64-only, so the build intentionally publishes onl
 
 Add future DNF packages to `packages/base.txt`, one package per line. Add base-image packages to remove to `packages/remove.txt`, one package per line. Add Fedora Copr projects to `coprs/enabled.txt`, one `owner/project` per line; the build enables them with `dnf copr enable`. Add non-Copr third-party RPM repositories under `repos/`; `Containerfile` copies all `*.repo` files into `/etc/yum.repos.d/`.
 
-Fish, Racket, Distrobox, libgda with SQLite support, and adw-gtk3 are installed from Fedora's native repositories. Docker Engine is installed from Docker's official Fedora RPM repository using `docker-ce`, `docker-ce-cli`, `containerd.io`, `docker-buildx-plugin`, and `docker-compose-plugin`. Wireshark is installed from Fedora's native repositories. Visual Studio Code is installed from Microsoft's official RPM repository using the `code` package. Ghostty is installed from the `scottames/ghostty` Fedora Copr. niri is installed from the `yalter/niri` Fedora Copr. Coprs are listed in `coprs/enabled.txt` and enabled during the image build instead of being checked in as generated repo files. Nix uses Fedora's native `nix` and `nix-daemon` packages. Fedora Toolbox is removed from the base image through `packages/remove.txt`.
+Fish, Racket, Distrobox, libgda with SQLite support, and adw-gtk3 are installed from Fedora's native repositories. Docker Engine is installed from Docker's official Fedora RPM repository using `docker-ce`, `docker-ce-cli`, `containerd.io`, `docker-buildx-plugin`, and `docker-compose-plugin`. Wireshark is installed from Fedora's native repositories. Visual Studio Code is installed from Microsoft's official RPM repository using the `code` package. Ghostty is installed from the `scottames/ghostty` Fedora Copr. Coprs are listed in `coprs/enabled.txt` and enabled during the image build instead of being checked in as generated repo files. Nix uses Fedora's native `nix` and `nix-daemon` packages. Fedora Toolbox is removed from the base image through `packages/remove.txt`.
 
 The image installs the adw-gtk3 GTK3 theme for system applications and the matching light and dark Flathub GTK3 theme extensions for Flatpak applications. System dconf defaults in the existing local database set `org.gnome.desktop.interface gtk-theme` to `adw-gtk3` for users who have not overridden the setting.
 
