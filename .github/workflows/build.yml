@@ -67,16 +67,49 @@ jobs:
           containerfiles: |
             ./Containerfile
 
-      - name: Push image
+      - name: Build chunked OCI image
+        env:
+          CHUNK_DIR: ${{ runner.temp }}/bootc-chunk
+          CHUNK_REFERENCE: sha-${{ steps.image.outputs.short_sha }}
+          SOURCE_IMAGE: ${{ steps.image.outputs.name }}:sha-${{ steps.image.outputs.short_sha }}
+        run: |
+          set -euo pipefail
+
+          rm -rf "${CHUNK_DIR}"
+          mkdir -p "${CHUNK_DIR}"
+
+          buildah push "${SOURCE_IMAGE}" "oci-archive:${CHUNK_DIR}/source.oci"
+
+          chunker="$(buildah from "${SOURCE_IMAGE}")"
+          trap 'buildah rm "${chunker}"' EXIT
+
+          buildah run --volume "${CHUNK_DIR}:/work" "${chunker}" -- \
+            skopeo copy oci-archive:/work/source.oci containers-storage:localhost/source:latest
+          buildah run --volume "${CHUNK_DIR}:/work" "${chunker}" -- \
+            rpm-ostree compose build-chunked-oci \
+              --bootc \
+              --format-version=2 \
+              --from=localhost/source:latest \
+              --reference="${CHUNK_REFERENCE}" \
+              --output=oci:/work/chunked
+
+      - name: Push chunked image
         if: github.event_name != 'pull_request'
-        uses: redhat-actions/push-to-registry@5ed88d269cf581ea9ef6dd6806d01562096bee9c # v2.8
-        with:
-          image: ${{ steps.build-image.outputs.image }}
-          tags: ${{ steps.build-image.outputs.tags }}
-          registry: ghcr.io
-          extra-args: |
-            --format=oci
-            --compression-format=zstd:chunked
+        env:
+          CHUNK_DIR: ${{ runner.temp }}/bootc-chunk
+          IMAGE_NAME: ${{ steps.image.outputs.name }}
+          SHORT_SHA: ${{ steps.image.outputs.short_sha }}
+        run: |
+          set -euo pipefail
+
+          skopeo copy \
+            --all \
+            --format=oci \
+            --dest-compress \
+            --dest-compress-format=zstd:chunked \
+            --dest-force-compress-format \
+            "oci:${CHUNK_DIR}/chunked:sha-${SHORT_SHA}" \
+            "docker://ghcr.io/${IMAGE_NAME}:sha-${SHORT_SHA}"
 
       - name: Retag pushed manifest
         if: github.event_name != 'pull_request'

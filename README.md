@@ -83,6 +83,6 @@ CI builds pull requests unless they are labeled `skip-ci`. Pushes to `main` and 
 - `latest`
 - `sha-<short-sha>`
 
-CI uploads the image once under the SHA tag with `zstd:chunked` compression, retags that manifest for the version and `latest`, and keeps only the 5 most recent GHCR image versions.
+CI exports the built image, runs `rpm-ostree compose build-chunked-oci --bootc --format-version=2`, pushes the rechunked SHA tag with `zstd:chunked` compression, retags that manifest for the version and `latest`, and keeps only the 5 most recent GHCR image versions.
 
 Renovate tracks the Fedora Silverblue base tag and digest, plus GitHub Actions. Digest-only base updates may automerge after CI passes. Major Fedora updates open PRs with `skip-ci`.
