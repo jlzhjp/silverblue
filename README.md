@@ -34,19 +34,19 @@ Keep list files plain: one item per line.
 - `nix.mount` bind-mounts `/var/nix` at `/nix`.
 - `flatpak-preinstall.service` enables system Flathub and installs refs from `flatpaks/flathub.txt` on boot.
 - `bootc-upgrade.timer` runs `bootc upgrade` 10 minutes after boot and then daily. Missed runs are triggered after the next boot.
-- `setup-home-manager.service` is a user unit that clones and applies a flake-based Home Manager config.
+- `home-manager-maintenance.service` is a user unit that clones and applies a flake-based Home Manager config.
 
 Enable the Nix daemon and Home Manager setup after install:
 
 ```bash
 sudo systemctl enable --now nix-daemon.service
-systemctl --user enable --now setup-home-manager.service
+systemctl --user enable --now home-manager-maintenance.service
 ```
 
 Override the default Home Manager source with a user drop-in:
 
 ```bash
-systemctl --user edit setup-home-manager.service
+systemctl --user edit home-manager-maintenance.service
 ```
 
 ```ini

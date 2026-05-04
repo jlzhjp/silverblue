@@ -1,6 +1,6 @@
 set shell := ["bash", "-cu"]
 
-bash_files := "libexec/setup-home-manager"
+bash_files := "libexec/home-manager-maintenance"
 fish_files := "fish/vendor_functions.d/*.fish"
 workflow := ".github/workflows/build.yml"
 

@@ -46,7 +46,7 @@ Flatpak boot installation intentionally enables the system Flathub remote before
 
 GNOME defaults are provided through keyfiles in `dconf/db/local.d/`; keep `dconf update` in the image build so `/etc/dconf/db/local` is compiled. Fedora already provides `/etc/dconf/profile/user` with `system-db:local`, so do not copy a replacement profile unless the base image stops providing one.
 
-Home Manager setup is handled by the systemd user unit `systemd/user/setup-home-manager.service`, installed to `/usr/lib/systemd/user/`, and the noninteractive helper `libexec/setup-home-manager`, installed to `/usr/libexec/setup-home-manager`. Do not reintroduce the old `setup_home_manager` Fish function. Users should configure the default dotfiles URL, ref, or directory with `systemctl --user edit setup-home-manager.service`, which creates a user drop-in under `~/.config/systemd/user/`; keep configuration outside `~/.config/home-manager` so it does not block the first clone.
+Home Manager setup is handled by the systemd user unit `systemd/user/home-manager-maintenance.service`, installed to `/usr/lib/systemd/user/`, and the noninteractive helper `libexec/home-manager-maintenance`, installed to `/usr/libexec/home-manager-maintenance`. Do not reintroduce the old `setup_home_manager` Fish function. Users should configure the default dotfiles URL, ref, or directory with `systemctl --user edit home-manager-maintenance.service`, which creates a user drop-in under `~/.config/systemd/user/`; keep configuration outside `~/.config/home-manager` so it does not block the first clone.
 
 The main package install from `packages/base.txt` intentionally uses `--setopt=install_weak_deps=False`; preserve that unless explicitly changing image size/dependency policy.
 
