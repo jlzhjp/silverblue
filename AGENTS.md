@@ -46,7 +46,7 @@ Flatpak boot installation intentionally enables the system Flathub remote before
 
 GNOME defaults are provided through keyfiles in `dconf/db/local.d/`; keep `dconf update` in the image build so `/etc/dconf/db/local` is compiled. Fedora already provides `/etc/dconf/profile/user` with `system-db:local`, so do not copy a replacement profile unless the base image stops providing one.
 
-Home Manager setup is handled by the systemd user unit `systemd/user/home-manager-maintenance.service`, installed to `/usr/lib/systemd/user/`, and the noninteractive helper `libexec/home-manager-maintenance`, installed to `/usr/libexec/home-manager-maintenance`. Do not reintroduce the old `setup_home_manager` Fish function. Users should configure the default dotfiles URL, ref, or directory with `systemctl --user edit home-manager-maintenance.service`, which creates a user drop-in under `~/.config/systemd/user/`; keep configuration outside `~/.config/home-manager` so it does not block the first clone.
+Home Manager setup is handled by the systemd user unit `systemd/user/home-manager-maintenance.service`, installed to `/usr/lib/systemd/user/`, and the noninteractive helper `libexec/apply-home-manager-configuration`, installed to `/usr/libexec/apply-home-manager-configuration`. Do not reintroduce the old `setup_home_manager` Fish function. Users should configure the default dotfiles URL, ref, or directory with `systemctl --user edit home-manager-maintenance.service`, which creates a user drop-in under `~/.config/systemd/user/`; keep configuration outside `~/.config/home-manager` so it does not block the first clone.
 
 The main package install from `packages/base.txt` intentionally uses `--setopt=install_weak_deps=False`; preserve that unless explicitly changing image size/dependency policy.
 
@@ -55,6 +55,8 @@ RPM Fusion release RPM URLs in `Containerfile` intentionally use `$(rpm -E %fedo
 Ghostty is installed from a Fedora Copr listed in `coprs/enabled.txt`. Keep Copr projects in that list and enable them in `Containerfile` with `dnf copr enable` before resolving `packages/base.txt`; do not add checked-in generated Copr `.repo` files under `repos/`.
 
 Automatic bootc updates are handled by `systemd/system/bootc-upgrade.timer`, which runs `systemd/system/bootc-upgrade.service` 10 minutes after boot and then daily. Keep the timer enabled in `Containerfile`; do not enable the service directly, because it is a oneshot unit intended to be timer-triggered.
+
+The `non-nixos-gpu-opengl-driver.service` unit is opt-in, requires and runs after `nix-daemon.service`, then runs `libexec/link-non-nixos-gpu-opengl-driver`. Keep the `/nix/store/*-non-nixos-gpu/lib/*.so` discovery and `/run/opengl-driver` link update logic in that helper, keep it covered by `justfile` Bash formatting/linting, and do not enable the unit by default in `Containerfile`.
 
 When shortening README package summaries, cross-check `packages/base.txt` so installed tools such as Racket are not accidentally omitted.
 

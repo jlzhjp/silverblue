@@ -13,7 +13,7 @@ case "${config_dir}" in
 esac
 
 if [[ "$(id -u)" -eq 0 ]]; then
-	echo "Run home-manager-maintenance as the target user, not root." >&2
+	echo "Run apply-home-manager-configuration as the target user, not root." >&2
 	exit 1
 fi
 

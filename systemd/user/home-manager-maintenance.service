@@ -7,7 +7,7 @@ StartLimitBurst=3
 [Service]
 Type=oneshot
 Environment=HOME_MANAGER_CONFIG_URL=git@github.com:jlzhjp/dotfiles.git
-ExecStart=/usr/libexec/home-manager-maintenance
+ExecStart=/usr/libexec/apply-home-manager-configuration
 Restart=on-failure
 RestartSec=30
 

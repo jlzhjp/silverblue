@@ -1,0 +1,17 @@
+[Unit]
+Description=Link non-NixOS GPU OpenGL driver
+After=nix-daemon.service
+Requires=nix-daemon.service
+ConditionPathIsDirectory=/nix/store
+StartLimitIntervalSec=600
+StartLimitBurst=3
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/link-non-nixos-gpu-opengl-driver
+RemainAfterExit=true
+Restart=on-failure
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target
