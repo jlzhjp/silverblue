@@ -8,7 +8,7 @@ This repository builds a Fedora Silverblue-derived bootc image and publishes it 
 - Published image: `ghcr.io/${{ github.repository }}`
 - Architecture: `amd64` / `x86_64`
 
-The image adds Docker Engine, Distrobox, Wireshark, Google Chrome, Visual Studio Code, Ghostty, Fish, BusyBox, Racket, Tailscale, sing-box, clash-meta, Nix, Japanese input engines, adw-gtk3, RPM Fusion multimedia support, and VAAPI drivers. Google Chrome is x86_64-only, so CI publishes only `amd64`.
+The image adds Docker Engine, Distrobox, Wireshark, Google Chrome, Visual Studio Code, Ghostty, Fish, BusyBox, Tailscale, sing-box, clash-meta, Nix, Japanese input engines, adw-gtk3, RPM Fusion multimedia support, and VAAPI drivers. Google Chrome is x86_64-only, so CI publishes only `amd64`.
 
 ## Layout
 

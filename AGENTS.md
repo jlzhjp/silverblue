@@ -58,6 +58,6 @@ Automatic bootc updates are handled by `systemd/system/bootc-upgrade.timer`, whi
 
 The `nix-gpu-driver.service` unit is opt-in, requires and runs after `nix-daemon.service`, then runs `libexec/link-nix-gpu-driver`. Keep the `/nix/store/*-non-nixos-gpu/lib/*.so` discovery and `/run/opengl-driver` link update logic in that helper, keep it covered by `justfile` Bash formatting/linting, and do not enable the unit by default in `Containerfile`.
 
-When shortening README package summaries, cross-check `packages/base.txt` so installed tools such as Racket are not accidentally omitted.
+When shortening README package summaries, cross-check `packages/base.txt` so installed tools are not accidentally omitted.
 
 The Containerfile uses chunkah's Buildah/Podman-only `FROM oci-archive:` workflow to repack the completed bootc rootfs into content-based layers. Keep the main image edits in the `builder` stage, run `bootc container lint` before repacking, pass `CHUNKAH_CONFIG_STR` from `podman inspect` of the pinned Fedora Silverblue base image, and build with `--skip-unused-stages=false`, `--volume "$(pwd):/run/src"`, and `--security-opt=label=disable` so the final `FROM oci-archive:out.ociarchive` can read chunkah's output. For this OSTree-derived bootc base, keep `chunkah build --prune /sysroot/ --max-layers 128 --label ostree.commit- --label ostree.final-diffid-` so bootc metadata is preserved while stale ostree labels and `/sysroot` content are removed.
