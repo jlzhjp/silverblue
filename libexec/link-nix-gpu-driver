@@ -6,7 +6,7 @@ shopt -s nullglob
 driver_libs=(/nix/store/*-non-nixos-gpu/lib/*.so)
 
 if [[ "${#driver_libs[@]}" -eq 0 ]]; then
-	echo "No non-nixos-gpu OpenGL driver libraries found under /nix/store." >&2
+	echo "No Nix GPU driver libraries found under /nix/store." >&2
 	exit 1
 fi
 

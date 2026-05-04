@@ -56,7 +56,7 @@ Ghostty is installed from a Fedora Copr listed in `coprs/enabled.txt`. Keep Copr
 
 Automatic bootc updates are handled by `systemd/system/bootc-upgrade.timer`, which runs `systemd/system/bootc-upgrade.service` 10 minutes after boot and then daily. Keep the timer enabled in `Containerfile`; do not enable the service directly, because it is a oneshot unit intended to be timer-triggered.
 
-The `non-nixos-gpu-opengl-driver.service` unit is opt-in, requires and runs after `nix-daemon.service`, then runs `libexec/link-non-nixos-gpu-opengl-driver`. Keep the `/nix/store/*-non-nixos-gpu/lib/*.so` discovery and `/run/opengl-driver` link update logic in that helper, keep it covered by `justfile` Bash formatting/linting, and do not enable the unit by default in `Containerfile`.
+The `nix-gpu-driver.service` unit is opt-in, requires and runs after `nix-daemon.service`, then runs `libexec/link-nix-gpu-driver`. Keep the `/nix/store/*-non-nixos-gpu/lib/*.so` discovery and `/run/opengl-driver` link update logic in that helper, keep it covered by `justfile` Bash formatting/linting, and do not enable the unit by default in `Containerfile`.
 
 When shortening README package summaries, cross-check `packages/base.txt` so installed tools such as Racket are not accidentally omitted.
 

@@ -32,7 +32,7 @@ Keep list files plain: one item per line.
 ## Included Services
 
 - `nix.mount` bind-mounts `/var/nix` at `/nix`.
-- `non-nixos-gpu-opengl-driver.service` optionally links the Nix `non-nixos-gpu` store path into `/run/opengl-driver` when enabled.
+- `nix-gpu-driver.service` optionally links the Nix GPU driver store path into `/run/opengl-driver` when enabled.
 - `flatpak-preinstall.service` enables system Flathub and installs refs from `flatpaks/flathub.txt` on boot.
 - `bootc-upgrade.timer` runs `bootc upgrade` 10 minutes after boot and then daily. Missed runs are triggered after the next boot.
 - `home-manager-maintenance.service` is a user unit that clones and applies a flake-based Home Manager config.
