@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+	echo "Usage: fedora-nix-rebuild <flake-ref>#<host>" >&2
+}
+
+if [[ "${EUID}" -ne 0 ]]; then
+	echo "fedora-nix-rebuild must be run as root." >&2
+	exit 1
+fi
+
+if [[ "$#" -ne 1 ]]; then
+	usage
+	exit 2
+fi
+
+installable="$1"
+
+if [[ "${installable}" != *#* ]]; then
+	usage
+	exit 2
+fi
+
+flake_ref="${installable%%#*}"
+host="${installable#*#}"
+
+if [[ -z "${flake_ref}" || -z "${host}" || "${host}" == *.* ]]; then
+	usage
+	exit 2
+fi
+
+for command_name in nix rm; do
+	if ! command -v "${command_name}" >/dev/null; then
+		echo "Missing required command: ${command_name}" >&2
+		exit 1
+	fi
+done
+
+system_dir="/var/nix-system"
+mkdir -p "${system_dir}"
+
+host_attr="${flake_ref}#fedoraNixConfigurations.${host}"
+nix_args=(--extra-experimental-features "nix-command flakes")
+
+if ! nix "${nix_args[@]}" eval "${host_attr}" --apply 'value: true' >/dev/null; then
+	echo "Missing host configuration: fedoraNixConfigurations.${host}" >&2
+	exit 1
+fi
+
+attr_exists() {
+	local attr_name="$1"
+	local exists
+
+	if ! exists="$(nix "${nix_args[@]}" eval --raw "${host_attr}" --apply "config: if builtins.hasAttr \"${attr_name}\" config then \"true\" else \"false\"")"; then
+		echo "Unable to inspect ${host_attr}.${attr_name}" >&2
+		exit 1
+	fi
+
+	[[ "${exists}" == "true" ]]
+}
+
+build_optional_attr() {
+	local attr_name="$1"
+	local link_name="$2"
+	local attr="${host_attr}.${attr_name}"
+	local link_path="${system_dir}/${link_name}"
+
+	if ! attr_exists "${attr_name}"; then
+		if [[ -L "${link_path}" ]]; then
+			rm "${link_path}"
+		fi
+		return
+	fi
+
+	nix "${nix_args[@]}" build --out-link "${link_path}" "${attr}"
+}
+
+build_optional_attr prefix prefix
+build_optional_attr graphicsDrivers graphics-drivers

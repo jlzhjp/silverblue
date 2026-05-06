@@ -42,6 +42,9 @@ COPY systemd/system/*.service /usr/lib/systemd/system/
 COPY systemd/system/*.timer /usr/lib/systemd/system/
 COPY systemd/user/*.service /usr/lib/systemd/user/
 COPY --chmod=0755 libexec/* /usr/libexec/
+COPY --chmod=0755 bin/* /usr/bin/
+COPY profile.d/*.sh /etc/profile.d/
+COPY environment.d/*.conf /usr/lib/environment.d/
 
 RUN set -euxo pipefail; \
     mkdir -p /usr/share/flatpak/remotes.d; \
@@ -59,13 +62,15 @@ COPY systemd/system/*.mount /usr/lib/systemd/system/
 COPY dconf/ /etc/dconf/
 
 RUN set -euxo pipefail; \
-    mkdir -p /nix /var/nix; \
+    mkdir -p /nix /var/nix /var/nix-system; \
     dconf update; \
     systemctl --root=/ enable bootc-upgrade.timer; \
     systemctl --root=/ enable flatpak-preinstall.service; \
+    systemctl --root=/ enable nix-system-graphics-drivers.service; \
     systemctl --root=/ enable nix.mount
 
 COPY fish/vendor_functions.d/*.fish /usr/share/fish/vendor_functions.d/
+COPY fish/vendor_conf.d/*.fish /usr/share/fish/vendor_conf.d/
 
 RUN bootc container lint
 

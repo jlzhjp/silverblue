@@ -20,6 +20,8 @@ The image adds Docker Engine, Distrobox, Wireshark, Google Chrome, Visual Studio
 - `flatpaks/flathub.txt`: Flathub application IDs
 - `dconf/`: GNOME system defaults copied into `/etc/dconf/`
 - `fish/vendor_functions.d/`: Fish helper functions
+- `fish/vendor_conf.d/`: Fish shell startup snippets
+- `bin/`: command-line helpers installed into `/usr/bin/`
 - `libexec/`: helper scripts installed into `/usr/libexec/`
 - `systemd/system/`: system units, mounts, and timers
 - `systemd/user/`: user units
@@ -32,7 +34,7 @@ Keep list files plain: one item per line.
 ## Included Services
 
 - `nix.mount` bind-mounts `/var/nix` at `/nix`.
-- `nix-gpu-driver.service` optionally links the Nix GPU driver store path into `/run/opengl-driver` when enabled.
+- `nix-system-graphics-drivers.service` links `/var/nix-system/graphics-drivers` into `/run/opengl-driver` on boot when present.
 - `flatpak-preinstall.service` enables system Flathub and installs refs from `flatpaks/flathub.txt` on boot.
 - `bootc-upgrade.timer` runs `bootc upgrade` 10 minutes after boot and then daily. Missed runs are triggered after the next boot.
 - `home-manager-maintenance.service` is a user unit that clones and applies a flake-based Home Manager config.
@@ -57,6 +59,14 @@ Environment=HOME_MANAGER_CONFIG_REF=main
 ```
 
 ## User Helpers
+
+Run `fedora-nix-rebuild` as root to build optional system outputs from a flake host configuration:
+
+```bash
+sudo fedora-nix-rebuild .#hostname
+```
+
+The helper builds `fedoraNixConfigurations.hostname.prefix` to the Nix out-link `/var/nix-system/prefix` and `fedoraNixConfigurations.hostname.graphicsDrivers` to `/var/nix-system/graphics-drivers` when those outputs exist. `/var/nix-system/prefix/bin` is added to the system PATH, and `/var/nix-system/prefix/share` is added to `XDG_DATA_DIRS`.
 
 Run `setup_fish_shell` as the target user to change that user's login shell to `/usr/bin/fish`.
 

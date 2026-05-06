@@ -1,7 +1,7 @@
 set shell := ["bash", "-cu"]
 
-bash_files := "libexec/*"
-fish_files := "fish/vendor_functions.d/*.fish"
+bash_files := "bin/* libexec/* profile.d/*.sh"
+fish_files := "fish/vendor_functions.d/*.fish fish/vendor_conf.d/*.fish"
 workflow := ".github/workflows/build.yml"
 
 default:

@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-This repository builds a Fedora Silverblue-derived bootc image. The main build definition is `Containerfile`. Package install inputs live in `packages/base.txt`; base-image package removals live in `packages/remove.txt`. Fedora Copr projects live in `coprs/enabled.txt`, one `owner/project` per line. Flatpak IDs belong in `flatpaks/flathub.txt`, one per line. GNOME system defaults live under `dconf/` and are copied into `/etc/dconf/`. Non-Copr RPM repos live in `repos/*.repo`. Fish helpers are installed from `fish/vendor_functions.d/`. Systemd system units and mounts live under `systemd/system/`; systemd user units live under `systemd/user/`; sysusers rules live under `sysusers/`; tmpfiles rules live under `tmpfiles/`. CI is in `.github/workflows/build.yml`; Renovate config is in `.github/renovate.json`.
+This repository builds a Fedora Silverblue-derived bootc image. The main build definition is `Containerfile`. Package install inputs live in `packages/base.txt`; base-image package removals live in `packages/remove.txt`. Fedora Copr projects live in `coprs/enabled.txt`, one `owner/project` per line. Flatpak IDs belong in `flatpaks/flathub.txt`, one per line. GNOME system defaults live under `dconf/` and are copied into `/etc/dconf/`. Non-Copr RPM repos live in `repos/*.repo`. Command-line helpers live in `bin/` and are installed to `/usr/bin/`. Fish helpers are installed from `fish/vendor_functions.d/`; Fish startup snippets live in `fish/vendor_conf.d/`. Systemd environment drop-ins live in `environment.d/`; profile snippets live in `profile.d/`. Systemd system units and mounts live under `systemd/system/`; systemd user units live under `systemd/user/`; sysusers rules live under `sysusers/`; tmpfiles rules live under `tmpfiles/`. CI is in `.github/workflows/build.yml`; Renovate config is in `.github/renovate.json`.
 
 ## Build, Test, and Development Commands
 
@@ -10,7 +10,7 @@ This repository builds a Fedora Silverblue-derived bootc image. The main build d
 - `podman run --rm fedora-silverblue-bootc:test bootc container lint`: reruns bootc lint against a built image.
 - `just format`: formats JSON and YAML files with Prettier, Bash helpers with `shfmt`, and Fish files with `fish_indent`.
 - `just lint`: runs formatting checks, GitHub Actions validation, YAML parsing, ShellCheck, and Fish syntax checks.
-- `fish --no-config -n fish/vendor_functions.d/*.fish`: syntax-checks Fish helper functions.
+- `fish --no-config -n fish/vendor_functions.d/*.fish fish/vendor_conf.d/*.fish`: syntax-checks Fish helper functions and startup snippets.
 
 CI builds pull requests without publishing, except PRs labeled `skip-ci`. Pushes to `main` and manual runs publish the Fedora version tag from `Containerfile`, `latest`, and `sha-<short-sha>` tags. CI builds OCI image metadata, pushes only `sha-<short-sha>` with `zstd:chunked` compression, then retags that manifest as the Fedora version tag and `latest` with `skopeo copy` so layers are not recompressed per tag. After publishing, CI deletes older GHCR container package versions and keeps only the 5 most recent images.
 
@@ -56,7 +56,7 @@ Ghostty is installed from a Fedora Copr listed in `coprs/enabled.txt`. Keep Copr
 
 Automatic bootc updates are handled by `systemd/system/bootc-upgrade.timer`, which runs `systemd/system/bootc-upgrade.service` 10 minutes after boot and then daily. Keep the timer enabled in `Containerfile`; do not enable the service directly, because it is a oneshot unit intended to be timer-triggered.
 
-The `nix-gpu-driver.service` unit is opt-in, requires and runs after `nix-daemon.service`, then runs `libexec/link-nix-gpu-driver`. Keep the `/nix/store/*-non-nixos-gpu/lib/*.so` discovery and `/run/opengl-driver` link update logic in that helper, keep it covered by `justfile` Bash formatting/linting, and do not enable the unit by default in `Containerfile`.
+Fedora Nix system outputs are managed by `bin/fedora-nix-rebuild`, installed as `/usr/bin/fedora-nix-rebuild`. It takes a flake host argument such as `.#hostname`, builds optional `fedoraNixConfigurations.<host>.prefix` and `fedoraNixConfigurations.<host>.graphicsDrivers`, and creates Nix out-links at `/var/nix-system/prefix` and `/var/nix-system/graphics-drivers` with `nix build --out-link` so they remain GC-rooted. Keep `/var/nix-system/prefix/bin` in the system PATH and `/var/nix-system/prefix/share` in `XDG_DATA_DIRS` through both shell/profile and `environment.d` snippets. The `nix-system-graphics-drivers.service` unit is enabled by default and only links `/var/nix-system/graphics-drivers` to `/run/opengl-driver` when that path exists. Do not reintroduce `nix-gpu-driver.service` or the old `/nix/store/*-non-nixos-gpu/lib/*.so` scanning helper.
 
 When shortening README package summaries, cross-check `packages/base.txt` so installed tools are not accidentally omitted.
 

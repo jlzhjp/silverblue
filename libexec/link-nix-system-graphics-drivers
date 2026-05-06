@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ -e /var/nix-system/graphics-drivers || -L /var/nix-system/graphics-drivers ]]; then
+	ln -nsfT /var/nix-system/graphics-drivers /run/opengl-driver
+fi

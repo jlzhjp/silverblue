@@ -1,0 +1,11 @@
+[Unit]
+Description=Link Nix system graphics drivers
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/link-nix-system-graphics-drivers
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target
