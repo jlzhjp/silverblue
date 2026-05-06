@@ -18,6 +18,8 @@ CI builds pull requests without publishing, except PRs labeled `skip-ci`. Pushes
 
 Keep package and Flatpak lists plain: one item per line, no inline comments unless supported. Name repository files after the upstream or product, for example `google-chrome.repo`. Fish functions should use snake_case names matching their file, such as `setup_fish_shell.fish`. Containerfile changes should preserve grouped DNF operations and cleanup, including rotated DNF logs such as `/var/log/dnf5.log.1`.
 
+Config snippets under `tmpfiles/`, `sysusers/`, `profile.d/`, `environment.d/`, `fish/vendor_conf.d/`, and `dconf/db/local.d/` should include `bootc-custom-` in the filename to avoid collisions with upstream-provided files. For numbered snippets, keep the priority number first, for example `10-bootc-custom-example.conf`.
+
 ## Testing Guidelines
 
 There is no separate unit test suite. Treat a successful local build plus `bootc container lint` as primary validation. For Fish helper changes, run the syntax check and, when practical, test in a disposable Silverblue or bootc environment. For package, repo, or Flatpak changes, verify dependency resolution with a build.
