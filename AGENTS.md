@@ -32,11 +32,9 @@ Do not commit secrets, personal tokens, or machine-specific configuration. Prefe
 
 ## Agent Notes & Lessons Learned
 
-Before changing this repository, inspect the tree, `README.md`, `Containerfile`, CI workflow, and recent commits. Keep generated docs within the requested length and verify with `wc -w`. After editing, check `git status --short` so only intended files changed. Prefer repo-specific commands and paths over boilerplate.
+Before changing this repository, inspect the tree, `README.md`, `Containerfile`, CI workflow, and recent commits. After editing, check `git status --short` so only intended files changed. Prefer repo-specific commands and paths over boilerplate.
 
-At the end of every change turn, update this file when project descriptions, workflows, validation expectations, or agent lessons have changed. Record mistakes and their fixes here so future agents avoid repeating them.
-
-When editing GitHub Actions workflows, validate with `actionlint .github/workflows/build.yml`; it is available in this workspace. `python3 -c 'import yaml; yaml.safe_load(open(".github/workflows/build.yml"))'` is useful as a basic YAML parse check. For Bash helpers under `libexec/`, run `shellcheck` and keep `shfmt` wired into `just format` and `just lint`. For paginated GitHub API cleanup, use `gh api --paginate --slurp` before sorting so retention decisions see the full version list, not one page at a time. Do not combine `gh api --slurp` with `--jq` or `--template`; GitHub CLI rejects that combination, so pipe slurped output to `jq -r` instead.
+When editing GitHub Actions workflows, validate with `actionlint .github/workflows/build.yml` and a YAML parse check. For Bash helpers under `bin/`, `libexec/`, or `profile.d/`, keep ShellCheck and `shfmt` coverage wired into `justfile`.
 
 When publishing compressed images, keep the expensive `zstd:chunked` upload to a single content tag and move additional tags by manifest copy. Do not pass a fully qualified `ghcr.io/...` image name together with `registry: ghcr.io` to `redhat-actions/push-to-registry`, because that produces duplicated destinations such as `ghcr.io/ghcr.io/...`.
 
@@ -50,12 +48,10 @@ The main package install from `packages/base.txt` intentionally uses `--setopt=i
 
 RPM Fusion release RPM URLs in `Containerfile` intentionally use `$(rpm -E %fedora)` so they follow the Fedora version provided by the base image. Do not hard-code the Fedora major version in those URLs.
 
-Ghostty is installed from a Fedora Copr listed in `coprs/enabled.txt`. Keep Copr projects in that list and enable them in `Containerfile` with `dnf copr enable` before resolving `packages/base.txt`; do not add checked-in generated Copr `.repo` files under `repos/`.
+Keep Copr projects in `coprs/enabled.txt` and enable them in `Containerfile` with `dnf copr enable` before resolving `packages/base.txt`; do not add checked-in generated Copr `.repo` files under `repos/`.
 
 Automatic bootc updates are handled by `systemd/system/bootc-upgrade.timer`, which runs `systemd/system/bootc-upgrade.service` 10 minutes after boot and then daily. Keep the timer enabled in `Containerfile`; do not enable the service directly, because it is a oneshot unit intended to be timer-triggered.
 
-Fedora Nix system outputs are managed by `bin/fedora-nix-rebuild`, installed as `/usr/bin/fedora-nix-rebuild`. It takes a flake host argument such as `.#hostname`, builds optional `fedoraNixConfigurations.<host>.prefix` and `fedoraNixConfigurations.<host>.graphicsDrivers`, and creates Nix out-links at `/var/nix-system/prefix` and `/var/nix-system/graphics-drivers` with `nix build --out-link` so they remain GC-rooted. Keep `/var/nix-system/prefix/bin` in the system PATH and `/var/nix-system/prefix/share` in `XDG_DATA_DIRS` through both shell/profile and `environment.d` snippets. The `nix-system-graphics-drivers.service` unit is enabled by default and only links `/var/nix-system/graphics-drivers` to `/run/opengl-driver` when that path exists. Do not reintroduce `nix-gpu-driver.service` or the old `/nix/store/*-non-nixos-gpu/lib/*.so` scanning helper.
-
-When shortening README package summaries, cross-check `packages/base.txt` so installed tools are not accidentally omitted.
+Fedora Nix system outputs are managed by `bin/fedora-nix-rebuild`, installed as `/usr/bin/fedora-nix-rebuild`. It builds optional `fedoraNixConfigurations.<host>.prefix` and `graphicsDrivers` outputs as GC-rooted `/var/nix-system` out-links. Keep the prefix path exported through both shell/profile and `environment.d` snippets, and keep `nix-system-graphics-drivers.service` as a no-op when graphics drivers are absent.
 
 The Containerfile uses chunkah's Buildah/Podman-only `FROM oci-archive:` workflow to repack the completed bootc rootfs into content-based layers. Keep the main image edits in the `builder` stage, run `bootc container lint` before repacking, pass `CHUNKAH_CONFIG_STR` from `podman inspect` of the pinned Fedora Silverblue base image, and build with `--skip-unused-stages=false`, `--volume "$(pwd):/run/src"`, and `--security-opt=label=disable` so the final `FROM oci-archive:out.ociarchive` can read chunkah's output. For this OSTree-derived bootc base, keep `chunkah build --prune /sysroot/ --max-layers 128 --label ostree.commit- --label ostree.final-diffid-` so bootc metadata is preserved while stale ostree labels and `/sysroot` content are removed.
