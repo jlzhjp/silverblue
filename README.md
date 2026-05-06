@@ -24,7 +24,6 @@ The image adds Docker Engine, Distrobox, Wireshark, Google Chrome, Visual Studio
 - `bin/`: command-line helpers installed into `/usr/bin/`
 - `libexec/`: helper scripts installed into `/usr/libexec/`
 - `systemd/system/`: system units, mounts, and timers
-- `systemd/user/`: user units
 - `sysusers/`, `tmpfiles/`: system users, groups, directories, and state paths
 - `.github/workflows/build.yml`: CI build and publish workflow
 - `.github/renovate.json`: Renovate update policy
@@ -37,25 +36,11 @@ Keep list files plain: one item per line.
 - `nix-system-graphics-drivers.service` links `/var/nix-system/graphics-drivers` into `/run/opengl-driver` on boot when present.
 - `flatpak-preinstall.service` enables system Flathub and installs refs from `flatpaks/flathub.txt` on boot.
 - `bootc-upgrade.timer` runs `bootc upgrade` 10 minutes after boot and then daily. Missed runs are triggered after the next boot.
-- `home-manager-maintenance.service` is a user unit that clones and applies a flake-based Home Manager config.
 
-Enable the Nix daemon and Home Manager setup after install:
+Enable the Nix daemon after install:
 
 ```bash
 sudo systemctl enable --now nix-daemon.service
-systemctl --user enable --now home-manager-maintenance.service
-```
-
-Override the default Home Manager source with a user drop-in:
-
-```bash
-systemctl --user edit home-manager-maintenance.service
-```
-
-```ini
-[Service]
-Environment=HOME_MANAGER_CONFIG_URL=https://github.com/example/home-manager.git
-Environment=HOME_MANAGER_CONFIG_REF=main
 ```
 
 ## User Helpers

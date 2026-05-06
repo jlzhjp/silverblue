@@ -40,7 +40,6 @@ RUN set -euxo pipefail; \
 COPY flatpaks/flathub.txt /tmp/flatpaks/flathub.txt
 COPY systemd/system/*.service /usr/lib/systemd/system/
 COPY systemd/system/*.timer /usr/lib/systemd/system/
-COPY systemd/user/*.service /usr/lib/systemd/user/
 COPY --chmod=0755 libexec/* /usr/libexec/
 COPY --chmod=0755 bin/* /usr/bin/
 COPY profile.d/*.sh /etc/profile.d/
