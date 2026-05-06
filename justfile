@@ -1,6 +1,5 @@
 set shell := ["bash", "-cu"]
 
-bash_files := "bin/* libexec/* profile.d/*.sh"
 fish_files := "fish/vendor_functions.d/*.fish fish/vendor_conf.d/*.fish"
 workflow := ".github/workflows/build.yml"
 
@@ -9,12 +8,12 @@ default:
 
 format:
     find .github -type f \( -name '*.json' -o -name '*.yml' -o -name '*.yaml' \) -print0 | xargs -0 prettier --write
-    shfmt -w {{bash_files}}
+    find bin profile.d -type f -print0 | xargs -0 shfmt -w
     fish_indent -w {{fish_files}}
 
 format-check:
     find .github -type f \( -name '*.json' -o -name '*.yml' -o -name '*.yaml' \) -print0 | xargs -0 prettier --check
-    shfmt -d {{bash_files}}
+    find bin profile.d -type f -print0 | xargs -0 shfmt -d
     fish_indent --check {{fish_files}}
 
 lint: format-check lint-workflow lint-bash lint-fish
@@ -24,7 +23,7 @@ lint-workflow:
     python3 -c 'import yaml; yaml.safe_load(open("{{workflow}}"))'
 
 lint-bash:
-    shellcheck {{bash_files}}
+    find bin profile.d -type f -print0 | xargs -0 shellcheck
 
 lint-fish:
     fish --no-config -n {{fish_files}}

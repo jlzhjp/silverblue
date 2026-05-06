@@ -1,10 +1,11 @@
 [Unit]
 Description=Link Nix system graphics drivers
 After=local-fs.target
+ConditionPathExists=/var/nix-system/graphics-drivers
 
 [Service]
 Type=oneshot
-ExecStart=/usr/libexec/link-nix-system-graphics-drivers
+ExecStart=/usr/bin/ln -nsfT /var/nix-system/graphics-drivers /run/opengl-driver
 RemainAfterExit=true
 
 [Install]

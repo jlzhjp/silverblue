@@ -34,7 +34,7 @@ Do not commit secrets, personal tokens, or machine-specific configuration. Prefe
 
 Before changing this repository, inspect the tree, `README.md`, `Containerfile`, CI workflow, and recent commits. After editing, check `git status --short` so only intended files changed. Prefer repo-specific commands and paths over boilerplate.
 
-When editing GitHub Actions workflows, validate with `actionlint .github/workflows/build.yml` and a YAML parse check. For Bash helpers under `bin/`, `libexec/`, or `profile.d/`, keep ShellCheck and `shfmt` coverage wired into `justfile`.
+When editing GitHub Actions workflows, validate with `actionlint .github/workflows/build.yml` and a YAML parse check. For Bash helpers under `bin/` or `profile.d/`, keep ShellCheck and `shfmt` coverage wired into `justfile`.
 
 When publishing compressed images, keep the expensive `zstd:chunked` upload to a single content tag and move additional tags by manifest copy. Do not pass a fully qualified `ghcr.io/...` image name together with `registry: ghcr.io` to `redhat-actions/push-to-registry`, because that produces duplicated destinations such as `ghcr.io/ghcr.io/...`.
 

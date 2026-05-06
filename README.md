@@ -22,7 +22,6 @@ The image adds Docker Engine, Distrobox, Wireshark, Google Chrome, Visual Studio
 - `fish/vendor_functions.d/`: Fish helper functions
 - `fish/vendor_conf.d/`: Fish shell startup snippets
 - `bin/`: command-line helpers installed into `/usr/bin/`
-- `libexec/`: helper scripts installed into `/usr/libexec/`
 - `systemd/system/`: system units, mounts, and timers
 - `sysusers/`, `tmpfiles/`: system users, groups, directories, and state paths
 - `.github/workflows/build.yml`: CI build and publish workflow
