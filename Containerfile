@@ -1,6 +1,6 @@
 ARG CHUNKAH_CONFIG_STR
 
-FROM quay.io/fedora/fedora-silverblue:44@sha256:2279470095c0dd231e395bd9874fe4b52e6dc04268519fdb0735d25e5034e909 AS builder
+FROM quay.io/fedora/fedora-silverblue:45@sha256:2de4b1118f51a1b4df8a36c425fc5476b4e703cc74162a06bd07153e6e45ae94 AS builder
 
 COPY repos/*.repo /etc/yum.repos.d/
 COPY coprs/enabled.txt /tmp/coprs/enabled.txt
